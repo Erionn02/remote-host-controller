@@ -2,7 +2,7 @@
 gtest/1.11.0
 cppzmq/4.6.0
 nlohmann_json/3.11.2
-
+cryptopp/8.7.0
 
 [generators]
 cmake
