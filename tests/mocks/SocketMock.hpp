@@ -11,4 +11,5 @@ class SocketMock : public ISocket{
     MOCK_METHOD(zmq::recv_result_t, recv, (zmq::message_t& message), (override));
     MOCK_METHOD(void, recv, (zmq::multipart_t& message), (override));
     MOCK_METHOD(void, setsockopt, (int option, int option_value), (override));
+    MOCK_METHOD(int, getsockopt, (int option), (override));
 };

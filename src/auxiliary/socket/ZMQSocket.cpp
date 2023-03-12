@@ -31,3 +31,7 @@ void ZMQSocket::recv(zmq::multipart_t &message) {
 void ZMQSocket::setsockopt(int option, int option_value) {
     socket.setsockopt(option, option_value);
 }
+
+int ZMQSocket::getsockopt(int option) {
+    return socket.getsockopt<int>(option);
+}

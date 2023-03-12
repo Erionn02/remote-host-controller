@@ -16,4 +16,5 @@ public:
     virtual zmq::recv_result_t recv(zmq::message_t &message) = 0;
     virtual void recv(zmq::multipart_t &message) = 0;
     virtual void setsockopt(int option, int option_value) = 0;
+    virtual int getsockopt(int option)=0;
 };
