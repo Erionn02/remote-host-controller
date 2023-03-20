@@ -21,6 +21,6 @@ public:
 
     void setsockopt(int option, int option_value) override;
 
-    zmq::socket_t socket;
-    zmq::context_t context;
+    zmq::context_t context{};
+    zmq::socket_t socket{};
 };

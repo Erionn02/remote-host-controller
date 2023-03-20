@@ -6,7 +6,4 @@ package_add_test(exampleUnitTest
         DEPENDS template_lib_one
         )
 
-package_add_test(exampleUnitTest2
-        SOURCES ExampleUnitTest2.cpp
-        DEPENDS template_lib_two
-        )
+

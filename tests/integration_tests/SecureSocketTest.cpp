@@ -103,3 +103,29 @@ TEST(SecureSocketTest, IsMessageCiphered){
 
 
 }
+
+
+TEST(SecureSocketTest, testingLimitationsOfZMQ){
+    srand(time(nullptr));
+
+    ZMQSocket client{zmq::socket_type::req};
+    ZMQSocket server{zmq::socket_type::rep};
+    std::string bind_address = "tcp://127.0.0.1:2137";
+
+    server.bind(bind_address);
+    client.connect(bind_address);
+    std::size_t data_size = 1'000'000;
+    auto data = std::make_unique<unsigned char[]>(data_size);
+    std::generate_n(data.get(),data_size,generator);
+
+    zmq::message_t message{data.get(), data_size};
+
+    client.send(std::move(message));
+
+    zmq::message_t received{1};
+    server.recv(received);
+
+
+    ASSERT_EQ(received.size(), data_size);
+    ASSERT_EQ(std::memcmp(received.data(), data.get(), data_size),0);
+}

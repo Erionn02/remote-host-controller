@@ -3,24 +3,18 @@
 #include <memory>
 #include <zmq.hpp>
 
-int f(int x){
-    return x;
-}
 
 
-std::string f(std::string x){
-    return x;
-}
 
 int main() {
-    int some_data{1234567};
-    void* data = &some_data;
+    auto xd1 = "elo";
+    auto xd2 = "elo""elo";
+    std::cout<<xd2;
 
-    zmq::message_t m{data,sizeof(some_data)};
-
-    auto xd = std::make_unique<uint8_t[]>(sizeof(some_data));
-    std::memcpy(xd.get(),m.data(),m.size());
-    std::cout<<std::memcmp(&some_data,xd.get(),m.size());
-
+    zmq::context_t cont{};
+    zmq::socket_t s{cont, zmq::socket_type::push};
+    zmq::message_t m{"eki"};
+    s.connect("tcp://127.0.0.1:12345");
+    s.send(m, zmq::send_flags::none);
     return 0;
 }
