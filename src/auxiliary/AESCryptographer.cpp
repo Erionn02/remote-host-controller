@@ -1,13 +1,24 @@
 #include "auxiliary/AESCryptographer.hpp"
 
+template<typename T>
+AESCryptographer::KeyType generateRandom(){
+    T data{};
+    srand(static_cast<unsigned int>(time(nullptr)));
+    auto generator = []{return std::rand()%256;};
+    std::generate_n(data.data(), data.size(),generator);
+    return data;
+}
 
-AESCryptographer::AESCryptographer() : aes_encryption(key.data(), key.size()),
+
+AESCryptographer::AESCryptographer() : key(generateRandom<KeyType>()),
+                                       initialization_vector(generateRandom<InitType>()),
+                                       aes_encryption(key.data(), key.size()),
                                        cbc_encryption(aes_encryption, initialization_vector.data()),
                                        aes_decryption(key.data(), KEY_SIZE),
                                        cbc_decryption(aes_decryption, initialization_vector.data()) {
 }
 
-AESCryptographer::AESCryptographer(AESCryptographer::KeyType &key, AESCryptographer::InitType &iv) : key(key),
+AESCryptographer::AESCryptographer(const AESCryptographer::KeyType &key, const AESCryptographer::InitType &iv) : key(key),
                                                                                                      initialization_vector(
                                                                                                              iv),
                                                                                                      aes_encryption(

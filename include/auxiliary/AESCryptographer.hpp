@@ -14,7 +14,7 @@ public:
     using InitType = std::array<CryptoPP::byte, CryptoPP::AES::BLOCKSIZE>;
 
     explicit AESCryptographer();
-    explicit AESCryptographer(KeyType& key, InitType & iv);
+    explicit AESCryptographer(const KeyType& key, const InitType & iv);
 
     std::string cipherData(const std::string& data);
     std::string cipherData(const void* data_ptr, std::size_t size);
