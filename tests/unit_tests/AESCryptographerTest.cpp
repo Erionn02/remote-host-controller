@@ -60,6 +60,7 @@ TEST_F(AESCryptographerTest, differentCryptographersWillGenerateDifferentCiphere
     auto ciphered_data_first = some_cryptographer.cipherData(some_random_data);
     auto ciphered_data_second = some_other_cryptographer.cipherData(some_random_data);
 
+
     //then
     ASSERT_NE(std::memcmp(ciphered_data_first.data(), ciphered_data_second.data(), data_length), 0);
 }
