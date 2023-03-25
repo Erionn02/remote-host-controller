@@ -7,4 +7,5 @@ add_lib(auxiliary
         ${CMAKE_CURRENT_SOURCE_DIR}/socket/SecureSocket.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/AESCryptographer.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/RSACryptographer.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Runnable.cpp
         )

@@ -2,19 +2,36 @@
 #include <string>
 #include <memory>
 #include <zmq.hpp>
+#include <spdlog/spdlog.h>
+#include <chrono>
+
+#include "auxiliary/Runnable.hpp"
 
 
+class XDDDDD : public Runnable{
+public:
+    XDDDDD(){
+        name = []{return "John Pablo II";};
+        tear_down = [&]{myMethod();};
+        set_up_hook = [] {spdlog::info("Ave Papau");};
+    }
 
+    void workerLoop() override{
+
+    }
+private:
+    void myMethod(){
+        spdlog::info(elo);
+    }
+    std::string elo{"no siema"};
+};
 
 int main() {
-    auto xd1 = "elo";
-    auto xd2 = "elo""elo";
-    std::cout<<xd2;
+    std::unique_ptr<XDDDDD> xd= std::make_unique<XDDDDD>();
 
-    zmq::context_t cont{};
-    zmq::socket_t s{cont, zmq::socket_type::push};
-    zmq::message_t m{"eki"};
-    s.connect("tcp://127.0.0.1:12345");
-    s.send(m, zmq::send_flags::none);
+    xd->start();
+    sleep(1);
+    xd->stop();
+
     return 0;
 }

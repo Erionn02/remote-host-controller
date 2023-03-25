@@ -55,7 +55,7 @@ function(set_link_options TARGET_NAME)
             -Wnull-dereference
             -Wuseless-cast
             -Wdouble-promotion
-            -O3
+#            -O3
             )
     target_link_options(${TARGET_NAME} PRIVATE -rdynamic)
 endfunction()
