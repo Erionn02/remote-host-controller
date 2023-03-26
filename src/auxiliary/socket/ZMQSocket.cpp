@@ -12,11 +12,11 @@ void ZMQSocket::connect(const std::string &address) {
     socket.connect(address);
 }
 
-void ZMQSocket::send(zmq::message_t message, zmq::send_flags flags) {
+void ZMQSocket::send(zmq::message_t &message, zmq::send_flags flags) {
     socket.send(message, flags);
 }
 
-void ZMQSocket::send(zmq::multipart_t message) {
+void ZMQSocket::send(zmq::multipart_t &message) {
     message.send(socket);
 }
 

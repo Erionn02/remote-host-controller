@@ -9,9 +9,9 @@ public:
 
     void connect(const std::string &address) override;
 
-    void send(zmq::message_t message, zmq::send_flags flags = zmq::send_flags::none) override;
+    void send(zmq::message_t &message, zmq::send_flags flags = zmq::send_flags::none) override;
 
-    void send(zmq::multipart_t message) override;
+    void send(zmq::multipart_t &message) override;
 
     int getsockopt(int option) override;
 

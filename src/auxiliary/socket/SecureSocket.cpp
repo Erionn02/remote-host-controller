@@ -17,11 +17,11 @@ void SecureSocket::connect(const std::string &address) {
     socket->connect(address);
 }
 
-void SecureSocket::send(zmq::message_t message, zmq::send_flags flags) {
+void SecureSocket::send(zmq::message_t &message, zmq::send_flags flags) {
     socket->send(std::move(message),flags);
 }
 
-void SecureSocket::send(zmq::multipart_t message) {
+void SecureSocket::send(zmq::multipart_t &message) {
     socket->send(std::move(message));
 }
 

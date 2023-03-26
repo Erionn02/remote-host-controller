@@ -10,9 +10,9 @@ public:
 
     void connect(const std::string &address) override;
 
-    void send(zmq::message_t message, zmq::send_flags flags) override;
+    void send(zmq::message_t &message, zmq::send_flags flags) override;
 
-    void send(zmq::multipart_t message) override;
+    void send(zmq::multipart_t &message) override;
 
     zmq::recv_result_t recv(zmq::message_t &message) override;
 
