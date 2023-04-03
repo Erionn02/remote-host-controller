@@ -9,12 +9,8 @@
 
 class AESCryptographer {
 public:
-    static const inline std::size_t KEY_SIZE{16};
-    using KeyType = std::array<CryptoPP::byte, AESCryptographer::KEY_SIZE>;
-    using InitType = std::array<CryptoPP::byte, CryptoPP::AES::BLOCKSIZE>;
-
     explicit AESCryptographer();
-    explicit AESCryptographer(const KeyType& key, const InitType & iv);
+    explicit AESCryptographer(const CryptoPP::SecByteBlock& key, const CryptoPP::SecByteBlock & iv);
 
     std::string cipherData(const std::string& data);
     std::string cipherData(const void* data_ptr, std::size_t size);
@@ -22,11 +18,11 @@ public:
     std::string decipherData(const std::string& data);
     std::string decipherData(const void* data_ptr, std::size_t size);
 
-    const KeyType& getKey();
-    const InitType& getInitVector();
+    const CryptoPP::SecByteBlock& getKey();
+    const CryptoPP::SecByteBlock& getInitVector();
 private:
-    KeyType key{};
-    InitType initialization_vector{};
+    CryptoPP::SecByteBlock key{};
+    CryptoPP::SecByteBlock initialization_vector{};
 
     CryptoPP::AES::Encryption aes_encryption;
     CryptoPP::CBC_Mode_ExternalCipher::Encryption cbc_encryption;

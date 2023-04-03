@@ -1,24 +1,23 @@
 #include "auxiliary/AESCryptographer.hpp"
 
-template<typename T>
-AESCryptographer::KeyType generateRandom(){
-    T data{};
-    srand(static_cast<unsigned int>(time(nullptr)));
-    auto generator = []{return std::rand()%256;};
-    std::generate_n(data.data(), data.size(),generator);
-    return data;
+
+CryptoPP::SecByteBlock generateRandom(std::size_t size){
+    CryptoPP::SecByteBlock byte_block{size};
+    CryptoPP::AutoSeededRandomPool rng;
+    rng.GenerateBlock(byte_block.data(), byte_block.size());
+    return byte_block;
 }
 
 
-AESCryptographer::AESCryptographer() : key(generateRandom<KeyType>()),
-                                       initialization_vector(generateRandom<InitType>()),
+AESCryptographer::AESCryptographer() : key(generateRandom(CryptoPP::AES::DEFAULT_KEYLENGTH)),
+                                       initialization_vector(generateRandom(CryptoPP::AES::BLOCKSIZE)),
                                        aes_encryption(key.data(), key.size()),
                                        cbc_encryption(aes_encryption, initialization_vector.data()),
-                                       aes_decryption(key.data(), KEY_SIZE),
+                                       aes_decryption(key.data(), key.size()),
                                        cbc_decryption(aes_decryption, initialization_vector.data()) {
 }
 
-AESCryptographer::AESCryptographer(const AESCryptographer::KeyType &key, const AESCryptographer::InitType &iv) : key(key),
+AESCryptographer::AESCryptographer(const CryptoPP::SecByteBlock &key, const CryptoPP::SecByteBlock &iv) : key(key),
                                                                                                      initialization_vector(
                                                                                                              iv),
                                                                                                      aes_encryption(
@@ -29,7 +28,7 @@ AESCryptographer::AESCryptographer(const AESCryptographer::KeyType &key, const A
                                                                                                              initialization_vector.data()),
                                                                                                      aes_decryption(
                                                                                                              key.data(),
-                                                                                                             KEY_SIZE),
+                                                                                                             key.size()),
                                                                                                      cbc_decryption(
                                                                                                              aes_decryption,
                                                                                                              initialization_vector.data()) {}
@@ -63,11 +62,11 @@ std::string AESCryptographer::decipherData(const void *data_ptr, std::size_t siz
     return deciphered_data;
 }
 
-const AESCryptographer::KeyType &AESCryptographer::getKey() {
+const CryptoPP::SecByteBlock &AESCryptographer::getKey() {
     return key;
 }
 
-const AESCryptographer::InitType &AESCryptographer::getInitVector() {
+const CryptoPP::SecByteBlock &AESCryptographer::getInitVector() {
     return initialization_vector;
 }
 
