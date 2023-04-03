@@ -1,16 +1,22 @@
 #include "auxiliary/RSACryptographer.hpp"
 
+#include <cryptopp/files.h>
+#include <cryptopp/modes.h>
+#include <cryptopp/osrng.h>
+#include <cryptopp/rsa.h>
+#include <cryptopp/sha.h>
 #include <fmt/format.h>
 
 
-RSACryptographer::RSACryptographer() {
-    CryptoPP::InvertibleRSAFunction params{};
-    params.GenerateRandomWithKeySize(rng, RSACryptographer::KEY_SIZE);
-    private_key = CryptoPP::RSA::PrivateKey(params);
-    public_key = CryptoPP::RSA::PublicKey(params);
-    encryptor = CryptoPP::RSAES_OAEP_SHA_Encryptor(public_key);
-    decryptor = CryptoPP::RSAES_OAEP_SHA_Decryptor(private_key);
-}
+//RSACryptographer::RSACryptographer() {
+//    CryptoPP::InvertibleRSAFunction params{};
+//    params.GenerateRandomWithKeySize(rng, RSACryptographer::KEY_SIZE);
+//    private_key = CryptoPP::RSA::PrivateKey(params);
+//    CryptoPP::RSA::PublicKey lmao{params};
+//    public_key = CryptoPP::RSA::PublicKey(params);
+//    encryptor = CryptoPP::RSAES_OAEP_SHA_Encryptor(public_key);
+//    decryptor = CryptoPP::RSAES_OAEP_SHA_Decryptor(private_key);
+//}
 
 RSACryptographer::RSACryptographer(CryptoPP::InvertibleRSAFunction &params) : private_key(params), public_key(params),
                                                                               encryptor(public_key),

@@ -4,7 +4,7 @@
 
 using namespace ::testing;
 
-struct RSACryptographerTest : public Test{
+struct AESCryptographerTest : public Test{
     std::size_t data_length{1'000};
 
     std::string generateRandomData(){
@@ -21,7 +21,7 @@ struct RSACryptographerTest : public Test{
 
 
 
-TEST_F(RSACryptographerTest, oneCry){
+TEST_F(AESCryptographerTest, oneCry){
     // given
     auto some_random_data = generateRandomData();
     AESCryptographer cryptographer{};
@@ -35,7 +35,7 @@ TEST_F(RSACryptographerTest, oneCry){
     ASSERT_EQ(deciphered_data, some_random_data);
 }
 
-TEST_F(RSACryptographerTest, oneCryptographerCanDecipherCipheredDataByOther){
+TEST_F(AESCryptographerTest, oneCryptographerCanDecipherCipheredDataByOther){
     // given
     auto some_random_data = generateRandomData();
     AESCryptographer cryptographer{};
@@ -50,7 +50,7 @@ TEST_F(RSACryptographerTest, oneCryptographerCanDecipherCipheredDataByOther){
     ASSERT_EQ(deciphered_data, some_random_data);
 }
 
-TEST_F(RSACryptographerTest, differentCryptographersWillGenerateDifferentCipheredData){
+TEST_F(AESCryptographerTest, differentCryptographersWillGenerateDifferentCipheredData){
     // given
     auto some_random_data = generateRandomData();
     AESCryptographer some_cryptographer{};

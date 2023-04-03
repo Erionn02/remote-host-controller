@@ -5,7 +5,7 @@
 using namespace ::testing;
 
 struct RSACryptographerTest : public Test {
-    std::size_t data_length{1'000};
+    std::size_t data_length{100};
 
     std::string generateRandomData() {
         // sanity check
@@ -24,7 +24,11 @@ struct RSACryptographerTest : public Test {
 
 TEST_F(RSACryptographerTest, canDecipherCipheredData) {
     //given
-    RSACryptographer cryptographer;
+    CryptoPP::InvertibleRSAFunction params{};
+    CryptoPP::AutoSeededRandomPool rng{};
+
+    params.GenerateRandomWithKeySize(rng, RSACryptographer::KEY_SIZE);
+    RSACryptographer cryptographer{params};
     std::string data = generateRandomData();
 
     //when

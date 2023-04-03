@@ -5,7 +5,7 @@
 
 class RSACryptographer {
 public:
-    RSACryptographer();
+//    RSACryptographer();
     RSACryptographer(CryptoPP::InvertibleRSAFunction& params);
     RSACryptographer(const CryptoPP::RSA::PrivateKey& private_key, const CryptoPP::RSA::PublicKey& public_key);
 
@@ -21,8 +21,8 @@ public:
     static inline unsigned int KEY_SIZE{2048};
 private:
     CryptoPP::AutoSeededRandomPool rng{};
-    CryptoPP::RSA::PrivateKey private_key;
-    CryptoPP::RSA::PublicKey public_key;
+    CryptoPP::RSA::PrivateKey private_key{};
+    CryptoPP::RSA::PublicKey public_key{};
 
     CryptoPP::RSAES_OAEP_SHA_Encryptor encryptor;
     CryptoPP::RSAES_OAEP_SHA_Decryptor decryptor;
