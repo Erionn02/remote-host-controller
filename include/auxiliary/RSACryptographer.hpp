@@ -5,20 +5,17 @@
 
 class RSACryptographer {
 public:
-//    RSACryptographer();
+    RSACryptographer();
     RSACryptographer(CryptoPP::InvertibleRSAFunction& params);
     RSACryptographer(const CryptoPP::RSA::PrivateKey& private_key, const CryptoPP::RSA::PublicKey& public_key);
 
-    CryptoPP::SecByteBlock encrypt(const std::string& data);
-    CryptoPP::SecByteBlock encrypt(const void* data, std::size_t size);
-    CryptoPP::SecByteBlock encrypt(const CryptoPP::SecByteBlock& data);
+    std::string encrypt(const std::string& data);
+    std::string encrypt(const void* data, std::size_t size);
     
-    
-    CryptoPP::SecByteBlock decrypt(const std::string& data);
-    CryptoPP::SecByteBlock decrypt(const void* data, std::size_t size);
-    CryptoPP::SecByteBlock decrypt(const CryptoPP::SecByteBlock& data);
+    std::string decrypt(const std::string& data);
+    std::string decrypt(const void* data, std::size_t size);
 
-    static inline unsigned int KEY_SIZE{2048};
+    static inline unsigned int KEY_SIZE{3072};
 private:
     CryptoPP::AutoSeededRandomPool rng{};
     CryptoPP::RSA::PrivateKey private_key{};
