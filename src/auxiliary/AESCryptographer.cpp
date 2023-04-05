@@ -42,7 +42,7 @@ std::string AESCryptographer::cipherData(const void *data_ptr, std::size_t size)
     std::string ciphered_data{};
 
     CryptoPP::StreamTransformationFilter stfEncryptor(cbc_encryption, new CryptoPP::StringSink(ciphered_data));
-    stfEncryptor.Put(reinterpret_cast<const unsigned char *>( data_ptr), size);
+    stfEncryptor.Put(reinterpret_cast<const CryptoPP::byte*>(data_ptr), size);
     stfEncryptor.MessageEnd();
 
     return ciphered_data;
@@ -56,7 +56,7 @@ std::string AESCryptographer::decipherData(const void *data_ptr, std::size_t siz
     std::string deciphered_data{};
 
     CryptoPP::StreamTransformationFilter stf_decryptor(cbc_decryption, new CryptoPP::StringSink(deciphered_data));
-    stf_decryptor.Put(reinterpret_cast<const unsigned char *>( data_ptr), size);
+    stf_decryptor.Put(reinterpret_cast<const CryptoPP::byte*>(data_ptr), size);
     stf_decryptor.MessageEnd();
 
     return deciphered_data;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ZMQSocket.hpp"
+#include "ISocket.hpp"
 #include "../RSACryptographer.hpp"
 #include "../AESCryptographer.hpp"
 
@@ -26,7 +26,7 @@ public:
 
     int getsockopt(int option) override;
 
-private:
+//private:
     void exchangeKeys();
     void exchangeKeys(zmq::multipart_t &key);
     zmq::multipart_t serializePublicKey() const;

@@ -42,6 +42,8 @@ std::optional<std::string> RSACryptographer::encrypt(const void *data, std::size
         CryptoPP::StringSource(reinterpret_cast<const CryptoPP::byte *>(data), size, true,
                                new CryptoPP::PK_EncryptorFilter(rng, encryptor, new CryptoPP::StringSink(encrypted)));
     } catch (CryptoPP::Exception &e) {
+        std::cout<<e.what();
+        throw;
         return std::nullopt;
     }
 
@@ -60,6 +62,8 @@ std::optional<std::string> RSACryptographer::decrypt(const void *data, std::size
                                new CryptoPP::PK_DecryptorFilter(rng, decryptor,
                                                                 new CryptoPP::StringSink(decrypted_data)));
     } catch (CryptoPP::Exception &e) {
+        std::cout<<e.what();
+        throw;
         return std::nullopt;
     }
 

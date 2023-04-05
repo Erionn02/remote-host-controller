@@ -1,5 +1,7 @@
 #include "auxiliary/socket/SecureSocket.hpp"
 
+#include <iostream>
+
 
 SecureSocket::SecureSocket(std::unique_ptr<ISocket> socket) : socket(std::move(socket)) {
     int socket_type = this->socket->getsockopt(ZMQ_TYPE);
@@ -46,10 +48,13 @@ zmq::recv_result_t SecureSocket::recv(zmq::message_t &message) {
         zmq::multipart_t key_message{};
         exchangeKeys(key_message);
     }
+
     auto result = socket->recv(message);
-
-
-
+    auto msg_str = message.to_string();
+    std::cout<<message.to_string();
+    auto deciphered = aes.decipherData(message.data(), message.size());
+    zmq::message_t tmp{deciphered};
+    message.swap(tmp);
     return result;
 }
 
@@ -78,12 +83,12 @@ void SecureSocket::exchangeKeys() {
 
     socket->send(encrypted_aes_key);
 
-    exchanged_keys = true;
-
     zmq::message_t ack{};
-    recv(ack);
+    socket->recv(ack);
+    auto lol = aes.decipherData(ack.data(), ack.size());
 
-    assert(ack.to_string() == SecureSocket::ACK);
+    exchanged_keys = true;
+    // assert(ack.to_string() == SecureSocket::ACK);
 }
 
 
@@ -97,11 +102,12 @@ void SecureSocket::exchangeKeys(zmq::multipart_t &key) {
     zmq::multipart_t encrypted_aes_key{};
     socket->recv(encrypted_aes_key);
     auto [aes_key, aes_vector] = decryptAES(encrypted_aes_key);
-    aes = AESCryptographer(aes_key, aes_vector);
-
+    auto wtf = AESCryptographer(aes_key, aes_vector);
+    aes = wtf;
+    auto ciphered_ack = aes.cipherData(SecureSocket::ACK);
+    zmq::message_t ack{ciphered_ack};
+    socket->send(ack);
     exchanged_keys = true;
-    zmq::message_t ack{SecureSocket::ACK};
-    send(ack);
 }
 
 zmq::multipart_t SecureSocket::serializePublicKey() const {
@@ -111,7 +117,8 @@ zmq::multipart_t SecureSocket::serializePublicKey() const {
     std::stringstream converted_key_stream{};
     converted_key_stream << modulus;
     zmq::message_t modulus_message{converted_key_stream.str()};
-    converted_key_stream.flush();
+    converted_key_stream.str("");
+    converted_key_stream.clear();
     converted_key_stream << public_exponent;
     zmq::message_t public_exponent_message{converted_key_stream.str()};
 
@@ -156,7 +163,7 @@ std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> SecureSocket::decryptA
     auto& encrypted_key = encrypted_aes_key.at(0);
     auto& encrypted_init_vector = encrypted_aes_key.at(1);
 
-    auto key = rsa.decrypt(encrypted_key.data(), encrypted_aes_key.size());
+    auto key = rsa.decrypt(encrypted_key.data(), encrypted_key.size());
     auto init_vector = rsa.decrypt(encrypted_init_vector.data(), encrypted_init_vector.size());
 
     assert(key.has_value());
