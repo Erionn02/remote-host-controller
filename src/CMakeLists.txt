@@ -1,9 +1,12 @@
 include(CMakePrintHelpers)
 
-add_lib(template_lib_one
-        SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/TestClass.cpp
-        )
+add_subdirectory(auxiliary)
 
-add_lib(template_lib_two
-        SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/TestClass2.cpp
+add_lib(project_lib
+        SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/TaskScheduler.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/TaskExecutor.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/CommandLineTaskCreator.cpp
+        DEPENDS
+        auxiliary
         )
