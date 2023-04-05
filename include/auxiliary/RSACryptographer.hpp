@@ -2,6 +2,8 @@
 #include <cryptopp/rsa.h>
 #include <cryptopp/osrng.h>
 
+#include <optional>
+
 
 class RSACryptographer {
 public:
@@ -9,11 +11,15 @@ public:
     RSACryptographer(CryptoPP::InvertibleRSAFunction& params);
     RSACryptographer(const CryptoPP::RSA::PrivateKey& private_key, const CryptoPP::RSA::PublicKey& public_key);
 
-    std::string encrypt(const std::string& data);
-    std::string encrypt(const void* data, std::size_t size);
+    std::optional<std::string> encrypt(const std::string& data);
+    std::optional<std::string> encrypt(const void* data, std::size_t size);
     
-    std::string decrypt(const std::string& data);
-    std::string decrypt(const void* data, std::size_t size);
+    std::optional<std::string> decrypt(const std::string& data);
+    std::optional<std::string> decrypt(const void* data, std::size_t size);
+
+    [[nodiscard]] const CryptoPP::RSA::PublicKey &getPublicKey() const;
+
+    void setPublicKey(const CryptoPP::RSA::PublicKey &new_public_key);
 
     static inline unsigned int KEY_SIZE{3072};
 private:

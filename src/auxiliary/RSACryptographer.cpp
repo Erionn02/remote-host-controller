@@ -31,31 +31,48 @@ RSACryptographer::RSACryptographer(const CryptoPP::RSA::PrivateKey &private_key,
 
 }
 
-std::string RSACryptographer::encrypt(const std::string &data) {
-    return encrypt(reinterpret_cast<const void*>(data.data()), data.size());
+std::optional<std::string> RSACryptographer::encrypt(const std::string &data) {
+    return encrypt(reinterpret_cast<const void *>(data.data()), data.size());
 }
 
 
-std::string RSACryptographer::encrypt(const void *data, std::size_t size) {
+std::optional<std::string> RSACryptographer::encrypt(const void *data, std::size_t size) {
     std::string encrypted{};
-    CryptoPP::StringSource(reinterpret_cast<const CryptoPP::byte*>(data),size, true,
-                           new CryptoPP::PK_EncryptorFilter(rng,encryptor, new CryptoPP::StringSink(encrypted)));
+    try {
+        CryptoPP::StringSource(reinterpret_cast<const CryptoPP::byte *>(data), size, true,
+                               new CryptoPP::PK_EncryptorFilter(rng, encryptor, new CryptoPP::StringSink(encrypted)));
+    } catch (CryptoPP::Exception &e) {
+        return std::nullopt;
+    }
+
     return encrypted;
 }
 
-std::string RSACryptographer::decrypt(const std::string &data) {
-    return decrypt(reinterpret_cast<const void*>(data.data()), data.size());
+std::optional<std::string> RSACryptographer::decrypt(const std::string &data) {
+    return decrypt(reinterpret_cast<const void *>(data.data()), data.size());
 }
 
 
-
-std::string RSACryptographer::decrypt(const void *data, std::size_t size) {
+std::optional<std::string> RSACryptographer::decrypt(const void *data, std::size_t size) {
     std::string decrypted_data{};
-
-    CryptoPP::StringSource(reinterpret_cast<const CryptoPP::byte*>(data),size, true,
-                           new CryptoPP::PK_DecryptorFilter(rng,decryptor, new CryptoPP::StringSink(decrypted_data)));
+    try {
+        CryptoPP::StringSource(reinterpret_cast<const CryptoPP::byte *>(data), size, true,
+                               new CryptoPP::PK_DecryptorFilter(rng, decryptor,
+                                                                new CryptoPP::StringSink(decrypted_data)));
+    } catch (CryptoPP::Exception &e) {
+        return std::nullopt;
+    }
 
     return decrypted_data;
+}
+
+const CryptoPP::RSA::PublicKey &RSACryptographer::getPublicKey() const {
+    return public_key;
+}
+
+void RSACryptographer::setPublicKey(const CryptoPP::RSA::PublicKey &new_public_key) {
+    this->public_key = new_public_key;
+    encryptor = CryptoPP::RSAES_OAEP_SHA_Encryptor(this->public_key);
 }
 
 
