@@ -1,7 +1,7 @@
 #include "auxiliary/AESCryptographer.hpp"
 
 
-CryptoPP::SecByteBlock generateRandom(std::size_t size){
+CryptoPP::SecByteBlock generateRandom(std::size_t size) {
     CryptoPP::SecByteBlock byte_block{size};
     CryptoPP::AutoSeededRandomPool rng;
     rng.GenerateBlock(byte_block.data(), byte_block.size());
@@ -11,27 +11,17 @@ CryptoPP::SecByteBlock generateRandom(std::size_t size){
 
 AESCryptographer::AESCryptographer() : key(generateRandom(CryptoPP::AES::DEFAULT_KEYLENGTH)),
                                        initialization_vector(generateRandom(CryptoPP::AES::BLOCKSIZE)),
-                                       aes_encryption(key.data(), key.size()),
-                                       cbc_encryption(aes_encryption, initialization_vector.data()),
-                                       aes_decryption(key.data(), key.size()),
-                                       cbc_decryption(aes_decryption, initialization_vector.data()) {
+                                       encryptor(key, key.size(), initialization_vector),
+                                       decryptor(key, key.size(), initialization_vector)
+                                       {
+
 }
 
 AESCryptographer::AESCryptographer(const CryptoPP::SecByteBlock &key, const CryptoPP::SecByteBlock &iv) : key(key),
-                                                                                                     initialization_vector(
-                                                                                                             iv),
-                                                                                                     aes_encryption(
-                                                                                                             key.data(),
-                                                                                                             key.size()),
-                                                                                                     cbc_encryption(
-                                                                                                             aes_encryption,
-                                                                                                             initialization_vector.data()),
-                                                                                                     aes_decryption(
-                                                                                                             key.data(),
-                                                                                                             key.size()),
-                                                                                                     cbc_decryption(
-                                                                                                             aes_decryption,
-                                                                                                             initialization_vector.data()) {}
+                                                                                                          initialization_vector(iv),
+                                                                                                          encryptor(key, key.size(), initialization_vector),
+                                                                                                          decryptor(key, key.size(), initialization_vector)
+                                                                                                         {}
 
 
 std::string AESCryptographer::cipherData(const std::string &data) {
@@ -41,9 +31,11 @@ std::string AESCryptographer::cipherData(const std::string &data) {
 std::string AESCryptographer::cipherData(const void *data_ptr, std::size_t size) {
     std::string ciphered_data{};
 
-    CryptoPP::StreamTransformationFilter stfEncryptor(cbc_encryption, new CryptoPP::StringSink(ciphered_data));
-    stfEncryptor.Put(reinterpret_cast<const unsigned char *>( data_ptr), size);
-    stfEncryptor.MessageEnd();
+    encryptor.SetKeyWithIV(key, key.size(), initialization_vector); //for some reason this needs to be set over again, otherwise does not work
+    CryptoPP::StringSource s(reinterpret_cast<const CryptoPP::byte*>(data_ptr), size, true,
+                   new CryptoPP::StreamTransformationFilter(encryptor,
+                                                  new CryptoPP::StringSink(ciphered_data)
+                   )); // CryptoPP takes care of deallocation, so no worries
 
     return ciphered_data;
 }
@@ -55,18 +47,27 @@ std::string AESCryptographer::decipherData(const std::string &data) {
 std::string AESCryptographer::decipherData(const void *data_ptr, std::size_t size) {
     std::string deciphered_data{};
 
-    CryptoPP::StreamTransformationFilter stf_decryptor(cbc_decryption, new CryptoPP::StringSink(deciphered_data));
-    stf_decryptor.Put(reinterpret_cast<const unsigned char *>( data_ptr), size);
-    stf_decryptor.MessageEnd();
+    decryptor.SetKeyWithIV(key, key.size(), initialization_vector); //for some reason this needs to be set over again, otherwise does not work
+    CryptoPP::StringSource s(reinterpret_cast<const CryptoPP::byte*>(data_ptr), size, true,
+                   new CryptoPP::StreamTransformationFilter(decryptor,
+                                                  new CryptoPP::StringSink(deciphered_data)
+                   )); // CryptoPP takes care of deallocation, so no worries
 
     return deciphered_data;
 }
 
-const CryptoPP::SecByteBlock &AESCryptographer::getKey() {
+const CryptoPP::SecByteBlock & AESCryptographer::getKey() {
     return key;
 }
 
-const CryptoPP::SecByteBlock &AESCryptographer::getInitVector() {
+const CryptoPP::SecByteBlock & AESCryptographer::getInitVector() {
     return initialization_vector;
+}
+
+void AESCryptographer::setKeyAndInitVector(CryptoPP::SecByteBlock &new_key, CryptoPP::SecByteBlock &new_init_vector) {
+    key = new_key;
+    initialization_vector =  new_init_vector;
+    decryptor.SetKeyWithIV(key, key.size(), initialization_vector);
+    encryptor.SetKeyWithIV(key, key.size(), initialization_vector);
 }
 

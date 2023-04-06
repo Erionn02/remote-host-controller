@@ -1,94 +1,62 @@
 #include <gtest/gtest.h>
 
 #include "auxiliary/socket/SecureSocket.hpp"
+#include "auxiliary/socket/ZMQSocket.hpp"
 
-#include <cryptopp/rsa.h>
-#include <cryptopp/rng.h>
-#include <cryptopp/randpool.h>
-#include <cryptopp/osrng.h>
-#include <cryptopp/modes.h>
+#include <thread>
 
 
+TEST(SecureSocketTest, communicationWithSingleMessageWorks) {
+    //given
+    SecureSocket socket_client{std::make_unique<ZMQSocket>(zmq::socket_type::req)};
+    SecureSocket socket_server{std::make_unique<ZMQSocket>(zmq::socket_type::rep)};
+    std::string some_data{"This is some random data"};
+    std::string address{"tcp://127.0.0.1:2137"};
+    zmq::message_t message{some_data};
 
-TEST(SecureSocketTest, IsMessageCiphered) {
-    CryptoPP::AutoSeededRandomPool rng;
-    CryptoPP::InvertibleRSAFunction params;
-    params.GenerateRandomWithKeySize(rng, 2048);
-    const CryptoPP::Integer &n = params.GetModulus();
-    const CryptoPP::Integer &p = params.GetPrime1();
-    const CryptoPP::Integer &q = params.GetPrime2();
-    const CryptoPP::Integer &d = params.GetPrivateExponent();
-    const CryptoPP::Integer &e = params.GetPublicExponent();
-    using namespace std;
+    socket_server.bind(address);
+    socket_client.connect(address);
+
+    //when
+    std::jthread t{[&]{
+        socket_client.send(message);
+        }};
+
+    zmq::message_t received_message{};
+    socket_server.recv(received_message);
+
+    //then
+    ASSERT_EQ(received_message.to_string(), some_data);
+}
 
 
-    cout << "RSA Parameters:" << endl;
-    cout << " n: " << n << endl;
-    cout << " p: " << p << endl;
-    cout << " q: " << q << endl;
-    cout << " d: " << d << endl;
-    cout << " e: " << e << endl;
-    cout << endl;
+TEST(SecureSocketTest, communicationWithMultiMessageWorks) {
+    //given
+    SecureSocket socket_client{std::make_unique<ZMQSocket>(zmq::socket_type::req)};
+    SecureSocket socket_server{std::make_unique<ZMQSocket>(zmq::socket_type::rep)};
+    std::string some_data{"This is some random data"};
+    std::string some_different_data{"This is some different random data"};
+    std::string address{"tcp://127.0.0.1:2137"};
 
-    //Key and IV setup
-    //AES encryption uses a secret key of a variable length (128-bit, 196-bit or 256-
-    //bit). This key is secretly exchanged between two parties before communication
-    //begins. DEFAULT_KEYLENGTH= 16 bytes
-    const int KEY_SIZE = 16;
-    CryptoPP::byte key[KEY_SIZE], iv[CryptoPP::AES::BLOCKSIZE];
-    memset(key, 0x00, KEY_SIZE);
-    memset(iv, 0x00, CryptoPP::AES::BLOCKSIZE);
+    zmq::multipart_t multi_message{};
+    zmq::message_t m1{some_data};
+    zmq::message_t m2{some_different_data};
+    multi_message.add(std::move(m1));
+    multi_message.add(std::move(m2));
 
-    //
-    // String and Sink setup
-    //
-    std::string plaintext;
-    std::size_t size = 10'000'000;
-    plaintext.resize(size);
-    auto generator = []() {
-        return std::rand() % 255 + 1;
-    };
-    std::generate_n(plaintext.data(), size, generator);
-    std::string ciphertext;
-    std::string decryptedtext;
+    socket_server.bind(address);
+    socket_client.connect(address);
 
-    //
-    // Dump Plain Text
-    //
+    //when
+    std::jthread t{[&]{
+        socket_client.send(multi_message);
+    }};
 
-    //
-    // Create Cipher Text
-    //
-    CryptoPP::AES::Encryption aesEncryption(key, KEY_SIZE);
-    CryptoPP::CBC_Mode_ExternalCipher::Encryption cbcEncryption(aesEncryption, iv);
+    zmq::multipart_t received_messages{};
+    socket_server.recv(received_messages);
 
-    CryptoPP::StreamTransformationFilter stfEncryptor(cbcEncryption, new CryptoPP::StringSink(ciphertext));
-    stfEncryptor.Put(reinterpret_cast<const unsigned char *>( plaintext.c_str()), plaintext.length());
-    stfEncryptor.MessageEnd();
-
-    //
-    // Dump Cipher Text
-    //
-//    std::cout << "Cipher Text (" << ciphertext.size() << " bytes)" << std::endl;
-//
-//    for( int i = 0; i < ciphertext.size(); i++ ) {
-//
-//        std::cout << "0x" << std::hex << (0xFF & static_cast<CryptoPP::byte>(ciphertext[i])) << " ";
-//    }
-//
-//    std::cout << std::endl << std::endl;
-
-    //
-    // Decrypt
-    //
-    CryptoPP::AES::Decryption aesDecryption(key, KEY_SIZE);
-    CryptoPP::CBC_Mode_ExternalCipher::Decryption cbcDecryption(aesDecryption, iv);
-
-    CryptoPP::StreamTransformationFilter stfDecryptor(cbcDecryption, new CryptoPP::StringSink(decryptedtext));
-    stfDecryptor.Put(reinterpret_cast<const unsigned char *>( ciphertext.c_str()), ciphertext.size());
-    stfDecryptor.MessageEnd();
-
-    std::cout<<decryptedtext.length();
-    ASSERT_EQ(plaintext.length(), decryptedtext.length());
-    ASSERT_EQ(plaintext, decryptedtext);
+    //then
+    ASSERT_EQ(received_messages.size(), 2);
+    ASSERT_EQ(received_messages.at(0).to_string(), some_data);
+    ASSERT_EQ(received_messages.at(1).to_string(), some_different_data);
 }
