@@ -1,8 +1,6 @@
 #include "auxiliary/RSACryptographer.hpp"
 
 #include <cryptopp/files.h>
-#include <cryptopp/modes.h>
-#include <cryptopp/osrng.h>
 #include <cryptopp/rsa.h>
 #include <cryptopp/sha.h>
 #include <fmt/format.h>
@@ -43,7 +41,6 @@ std::optional<std::string> RSACryptographer::encrypt(const void *data, std::size
                                new CryptoPP::PK_EncryptorFilter(rng, encryptor, new CryptoPP::StringSink(encrypted)));
     } catch (CryptoPP::Exception &e) {
         std::cout<<e.what();
-        throw;
         return std::nullopt;
     }
 
@@ -63,7 +60,6 @@ std::optional<std::string> RSACryptographer::decrypt(const void *data, std::size
                                                                 new CryptoPP::StringSink(decrypted_data)));
     } catch (CryptoPP::Exception &e) {
         std::cout<<e.what();
-        throw;
         return std::nullopt;
     }
 

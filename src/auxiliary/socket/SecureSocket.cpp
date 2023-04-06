@@ -29,12 +29,12 @@ void SecureSocket::send(zmq::message_t &message, zmq::send_flags flags) {
     socket->send(encrypted_message, flags);
 }
 
-void SecureSocket::send(zmq::multipart_t &message) {
+void SecureSocket::send(zmq::multipart_t &messages) {
     if (!exchanged_keys) {
         exchangeKeys();
     }
     zmq::multipart_t encrypted_messages{};
-    for (auto &msg: message) {
+    for (auto &msg: messages) {
         auto encrypted_data = aes.cipherData(msg.data(), msg.size());
         zmq::message_t encrypted_message{encrypted_data};
         encrypted_messages.add(std::move(encrypted_message));
@@ -51,15 +51,25 @@ zmq::recv_result_t SecureSocket::recv(zmq::message_t &message) {
 
     auto result = socket->recv(message);
     auto msg_str = message.to_string();
-    std::cout<<message.to_string();
     auto deciphered = aes.decipherData(message.data(), message.size());
     zmq::message_t tmp{deciphered};
     message.swap(tmp);
     return result;
 }
 
-void SecureSocket::recv(zmq::multipart_t &message) {
-    return socket->recv(message);
+void SecureSocket::recv(zmq::multipart_t &messages) {
+    if (!exchanged_keys) {
+        zmq::multipart_t key_message{};
+        exchangeKeys(key_message);
+    }
+
+
+    socket->recv(messages);
+    for(auto& single_message: messages){
+        auto deciphered = aes.decipherData(single_message.data(), single_message.size());
+        zmq::message_t tmp{deciphered};
+        single_message.swap(tmp);
+    }
 }
 
 void SecureSocket::setsockopt(int option, int option_value) {
@@ -83,12 +93,11 @@ void SecureSocket::exchangeKeys() {
 
     socket->send(encrypted_aes_key);
 
-    zmq::message_t ack{};
-    socket->recv(ack);
-    auto lol = aes.decipherData(ack.data(), ack.size());
-
     exchanged_keys = true;
-    // assert(ack.to_string() == SecureSocket::ACK);
+
+    zmq::message_t ack{};
+    recv(ack);
+    assert(ack.to_string() == SecureSocket::ACK);
 }
 
 
@@ -102,12 +111,11 @@ void SecureSocket::exchangeKeys(zmq::multipart_t &key) {
     zmq::multipart_t encrypted_aes_key{};
     socket->recv(encrypted_aes_key);
     auto [aes_key, aes_vector] = decryptAES(encrypted_aes_key);
-    auto wtf = AESCryptographer(aes_key, aes_vector);
-    aes = wtf;
-    auto ciphered_ack = aes.cipherData(SecureSocket::ACK);
-    zmq::message_t ack{ciphered_ack};
-    socket->send(ack);
+    aes.setKeyAndInitVector(aes_key, aes_vector);
+
     exchanged_keys = true;
+    zmq::message_t ack{SecureSocket::ACK};
+    send(ack);
 }
 
 zmq::multipart_t SecureSocket::serializePublicKey() const {
@@ -141,8 +149,8 @@ CryptoPP::RSA::PublicKey SecureSocket::deserializePublicKey(zmq::multipart_t &se
 }
 
 zmq::multipart_t SecureSocket::encryptAESKey() {
-    auto& aes_key = aes.getKey();
-    auto& aes_init_vector = aes.getInitVector();
+    auto &aes_key = aes.getKey();
+    auto &aes_init_vector = aes.getInitVector();
 
     auto encrypted_aes_key = rsa.encrypt(aes_key.data(), aes_key.size());
     auto encrypted_aes_init_vector = rsa.encrypt(aes_init_vector.data(), aes_init_vector.size());
@@ -175,4 +183,3 @@ std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> SecureSocket::decryptA
 
     return {aes_key, aes_init_vector};
 }
-

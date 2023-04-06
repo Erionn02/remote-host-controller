@@ -54,17 +54,23 @@ TEST_F(AESCryptographerTest, canDecipherDataMultipleTimes) {
 
 TEST_F(AESCryptographerTest, oneCryptographerCanDecipherCipheredDataByOther) {
     // given
-    auto some_random_data = generateRandomData();
-    AESCryptographer cryptographer{};
-    AESCryptographer decryptographer{cryptographer.getKey(), cryptographer.getInitVector()};
+    std::string some_random_data = "elo elo 320 co tam mordy";
+    AESCryptographer cryptographer_1{};
+    AESCryptographer cryptographer_2{cryptographer_1.getKey(), cryptographer_1.getInitVector()};
 
     //when
-    auto ciphered_data = cryptographer.cipherData(some_random_data);
-    auto deciphered_data = decryptographer.decipherData(ciphered_data);
+    auto ciphered_data_1 = cryptographer_1.cipherData(some_random_data.data(), some_random_data.size());
+    auto ciphered_data_2 = cryptographer_2.cipherData(some_random_data.data(), some_random_data.size());
 
-    //then
-    ASSERT_GE(ciphered_data.length(), some_random_data.length());
-    ASSERT_EQ(deciphered_data, some_random_data);
+    ASSERT_EQ(ciphered_data_1, ciphered_data_2);
+    auto deciphered_1 = cryptographer_1.decipherData(ciphered_data_2);
+    auto deciphered_1_again = cryptographer_1.decipherData(ciphered_data_2);
+    ASSERT_EQ(deciphered_1, some_random_data);
+    ASSERT_EQ(deciphered_1_again, some_random_data);
+    ASSERT_EQ(cryptographer_1.decipherData(ciphered_data_2), cryptographer_1.decipherData(ciphered_data_2));
+    ASSERT_EQ(cryptographer_2.decipherData(ciphered_data_1), cryptographer_2.decipherData(ciphered_data_2));
+    ASSERT_EQ(cryptographer_1.decipherData(ciphered_data_1), cryptographer_2.decipherData(ciphered_data_2));
+    ASSERT_EQ(cryptographer_1.decipherData(ciphered_data_2), cryptographer_2.decipherData(ciphered_data_1));
 }
 
 TEST_F(AESCryptographerTest, differentCryptographersWillGenerateDifferentCipheredData) {

@@ -6,29 +6,11 @@
 #include <thread>
 
 
-TEST(SecureSocketTest, tmp) {
-    //given
-    SecureSocket socket_client{std::make_unique<ZMQSocket>(zmq::socket_type::req)};
-    auto serialized = socket_client.encryptAESKey();
-    auto [key, vector] = socket_client.decryptAES(serialized);
-
-    ASSERT_EQ(key, socket_client.aes.getKey());
-    ASSERT_EQ(vector, socket_client.aes.getInitVector());
-
-    auto serialized_pub = socket_client.serializePublicKey();
-    auto deserialized_key = socket_client.deserializePublicKey(serialized_pub);
-
-    ASSERT_EQ(deserialized_key.GetPublicExponent(),socket_client.rsa.getPublicKey().GetPublicExponent());
-    ASSERT_EQ(deserialized_key.GetModulus(),socket_client.rsa.getPublicKey().GetModulus());
-}
-
-
-
-TEST(SecureSocketTest, everythingWorksFine) {
+TEST(SecureSocketTest, communicationWithSingleMessageWorks) {
     //given
     SecureSocket socket_client{std::make_unique<ZMQSocket>(zmq::socket_type::req)};
     SecureSocket socket_server{std::make_unique<ZMQSocket>(zmq::socket_type::rep)};
-    std::string some_data{"LOLOLOLOL"};
+    std::string some_data{"This is some random data"};
     std::string address{"tcp://127.0.0.1:2137"};
     zmq::message_t message{some_data};
 
@@ -45,4 +27,36 @@ TEST(SecureSocketTest, everythingWorksFine) {
 
     //then
     ASSERT_EQ(received_message.to_string(), some_data);
+}
+
+
+TEST(SecureSocketTest, communicationWithMultiMessageWorks) {
+    //given
+    SecureSocket socket_client{std::make_unique<ZMQSocket>(zmq::socket_type::req)};
+    SecureSocket socket_server{std::make_unique<ZMQSocket>(zmq::socket_type::rep)};
+    std::string some_data{"This is some random data"};
+    std::string some_different_data{"This is some different random data"};
+    std::string address{"tcp://127.0.0.1:2137"};
+
+    zmq::multipart_t multi_message{};
+    zmq::message_t m1{some_data};
+    zmq::message_t m2{some_different_data};
+    multi_message.add(std::move(m1));
+    multi_message.add(std::move(m2));
+
+    socket_server.bind(address);
+    socket_client.connect(address);
+
+    //when
+    std::jthread t{[&]{
+        socket_client.send(multi_message);
+    }};
+
+    zmq::multipart_t received_messages{};
+    socket_server.recv(received_messages);
+
+    //then
+    ASSERT_EQ(received_messages.size(), 2);
+    ASSERT_EQ(received_messages.at(0).to_string(), some_data);
+    ASSERT_EQ(received_messages.at(1).to_string(), some_different_data);
 }

@@ -16,17 +16,17 @@ public:
 
     void send(zmq::message_t &message, zmq::send_flags flags = zmq::send_flags::none) override;
 
-    void send(zmq::multipart_t &message) override;
+    void send(zmq::multipart_t &messages) override;
 
     zmq::recv_result_t recv(zmq::message_t &message) override;
 
-    void recv(zmq::multipart_t &message) override;
+    void recv(zmq::multipart_t &messages) override;
 
     void setsockopt(int option, int option_value) override;
 
     int getsockopt(int option) override;
 
-//private:
+private:
     void exchangeKeys();
     void exchangeKeys(zmq::multipart_t &key);
     zmq::multipart_t serializePublicKey() const;
