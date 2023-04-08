@@ -12,23 +12,28 @@ public:
 
     void bind(const std::string &address) override;
 
+    void unbind() override;
+
+    void disconnect() override;
+
     void connect(const std::string &address) override;
 
-    void send(zmq::message_t &message, zmq::send_flags flags = zmq::send_flags::none) override;
+    bool send(zmq::message_t &message, zmq::send_flags flags = zmq::send_flags::none) override;
 
-    void send(zmq::multipart_t &messages) override;
+    bool send(zmq::multipart_t &messages) override;
 
-    zmq::recv_result_t recv(zmq::message_t &message) override;
+    bool recv(zmq::message_t &message) override;
 
-    void recv(zmq::multipart_t &messages) override;
+    bool recv(zmq::multipart_t &messages) override;
 
     void setsockopt(int option, int option_value) override;
 
     int getsockopt(int option) override;
 
+    void getsockopt(int option, void *value, size_t *value_size) override;
 private:
-    void exchangeKeys();
-    void exchangeKeys(zmq::multipart_t &key);
+    bool sendEncryptedAESKey();
+    bool receiveAESKey();
     zmq::multipart_t serializePublicKey() const;
     CryptoPP::RSA::PublicKey deserializePublicKey(zmq::multipart_t& serialized_key) const;
     zmq::multipart_t encryptAESKey();
