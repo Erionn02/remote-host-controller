@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
-project(botnet)
+project(remote-host-controller)
 set(CMAKE_CXX_STANDARD 23)
 
 set(CONAN_SYSTEM_INCLUDES ON)

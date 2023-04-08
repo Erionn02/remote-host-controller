@@ -1,8 +1,10 @@
 #pragma once
 #include <nlohmann/json.hpp>
 
-class CommandLineTaskCreator {
+class CommandLineTaskHandler {
 public:
+
+
     nlohmann::json createTask(const std::string& command);
 };
 
