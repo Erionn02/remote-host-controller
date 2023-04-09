@@ -19,5 +19,5 @@ void ClientConnectionController::workerLoop() {
 
     zmq::message_t response{};
     socket->recv(response);
-    std::cout << response;
+    std::cout << response.to_string();
 }

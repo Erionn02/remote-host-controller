@@ -56,7 +56,6 @@ bool SecureSocket::send(zmq::message_t &message, zmq::send_flags flags) {
         }
         spdlog::info("Sent AES key successfully.");
     }
-    spdlog::debug("MESSAGE LENGTH : {}", message.size());
     auto encrypted_data = aes.cipherData(message.data(), message.size());
     zmq::message_t encrypted_message{encrypted_data};
     return socket->send(encrypted_message, flags);
@@ -89,12 +88,22 @@ bool SecureSocket::recv(zmq::message_t &message) {
         spdlog::info("Received AES key.");
     }
 
-    auto result = socket->recv(message);
-    auto msg_str = message.to_string();
-    auto deciphered = aes.decipherData(message.data(), message.size());
-    zmq::message_t tmp{deciphered};
-    message.swap(tmp);
-    return result;
+    auto recv_result = socket->recv(message);
+    if(recv_result){
+        auto msg_str = message.to_string();
+        auto deciphered = aes.decipherData(message.data(), message.size());
+        if(deciphered.has_value()){
+            zmq::message_t tmp{deciphered.value()};
+            message.swap(tmp);
+        } else {
+            // means that received data is not ciphered or is ciphered with different key than used in this socket,
+            // probably someone is ears dropping
+            zmq::message_t nack{"NACK"};
+            socket->send(nack);
+            return false;
+        }
+    }
+    return recv_result;
 }
 
 bool SecureSocket::recv(zmq::multipart_t &messages) {
@@ -105,14 +114,24 @@ bool SecureSocket::recv(zmq::multipart_t &messages) {
         }
         spdlog::info("Received AES key.");
     }
-
-    auto received = socket->recv(messages);
-    for(auto& single_message: messages){
-        auto deciphered = aes.decipherData(single_message.data(), single_message.size());
-        zmq::message_t tmp{deciphered};
-        single_message.swap(tmp);
+    auto recv_result = socket->recv(messages);
+    if(recv_result){
+        for(auto& single_message: messages){
+            auto deciphered = aes.decipherData(single_message.data(), single_message.size());
+            if(deciphered.has_value()){
+                zmq::message_t tmp{deciphered.value()};
+                single_message.swap(tmp);
+            } else {
+                // means that received data is not ciphered or is ciphered with different key than used in this socket,
+                // probably someone is ears dropping
+                zmq::message_t nack{"NACK"};
+                socket->send(nack);
+                return false;
+            }
+        }
     }
-    return received;
+
+    return recv_result;
 }
 
 bool SecureSocket::sendEncryptedAESKey() {

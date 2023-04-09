@@ -36,7 +36,7 @@ void RemoteHostConnectionController::workerLoop() {
     zmq::message_t message{};
     if(socket->recv(message)){
         auto output = exec(message.to_string().data());
-        spdlog::info("COMMAND: {}, output: {}",message.to_string(), output);
+        spdlog::info("COMMAND: {}, output: \n{}",message.to_string(), output);
         if(output.empty()) output = "elo";
         zmq::message_t response{output};
         socket->send(response);

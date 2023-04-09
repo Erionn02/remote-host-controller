@@ -6,6 +6,8 @@
 #include <cryptopp/osrng.h>
 #include <cryptopp/modes.h>
 
+#include <optional>
+
 
 class AESCryptographer {
 public:
@@ -17,8 +19,8 @@ public:
     std::string cipherData(const std::string& data);
     std::string cipherData(const void* data_ptr, std::size_t size);
 
-    std::string decipherData(const std::string& data);
-    std::string decipherData(const void* data_ptr, std::size_t size);
+    std::optional<std::string> decipherData(const std::string& data);
+    std::optional<std::string> decipherData(const void* data_ptr, std::size_t size);
 
     const CryptoPP::SecByteBlock & getKey();
     const CryptoPP::SecByteBlock & getInitVector();

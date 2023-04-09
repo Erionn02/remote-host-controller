@@ -32,7 +32,7 @@ TEST_F(AESCryptographerTest, canDecipherCipheredData) {
 
     // then
     ASSERT_GE(ciphered_data.length(), some_random_data.length());
-    ASSERT_EQ(deciphered_data, some_random_data);
+    ASSERT_EQ(deciphered_data.value(), some_random_data);
 }
 
 TEST_F(AESCryptographerTest, canHandleEmptyData) {
@@ -46,7 +46,7 @@ TEST_F(AESCryptographerTest, canHandleEmptyData) {
 
     // then
     ASSERT_GE(ciphered_data.length(), empty_data.length());
-    ASSERT_EQ(deciphered_data, empty_data);
+    ASSERT_EQ(deciphered_data.value(), empty_data);
 }
 
 TEST_F(AESCryptographerTest, canDecipherDataMultipleTimes) {
@@ -61,7 +61,7 @@ TEST_F(AESCryptographerTest, canDecipherDataMultipleTimes) {
         auto deciphered_data = cryptographer.decipherData(ciphered_data);
 
         // then
-        ASSERT_EQ(deciphered_data, some_random_data);
+        ASSERT_EQ(deciphered_data.value(), some_random_data);
     }
 
 }
@@ -83,11 +83,11 @@ TEST_F(AESCryptographerTest, oneCryptographerCanDecipherCipheredDataByOther) {
     auto deciphered_1 = cryptographer_1.decipherData(ciphered_data_2);
     auto deciphered_1_again = cryptographer_1.decipherData(ciphered_data_2);
     ASSERT_EQ(deciphered_1, some_random_data);
-    ASSERT_EQ(deciphered_1_again, some_random_data);
-    ASSERT_EQ(cryptographer_1.decipherData(ciphered_data_2), cryptographer_1.decipherData(ciphered_data_2));
-    ASSERT_EQ(cryptographer_2.decipherData(ciphered_data_1), cryptographer_2.decipherData(ciphered_data_2));
-    ASSERT_EQ(cryptographer_1.decipherData(ciphered_data_1), cryptographer_2.decipherData(ciphered_data_2));
-    ASSERT_EQ(cryptographer_1.decipherData(ciphered_data_2), cryptographer_2.decipherData(ciphered_data_1));
+    ASSERT_EQ(deciphered_1_again.value(), some_random_data);
+    ASSERT_EQ(cryptographer_1.decipherData(ciphered_data_2).value(), cryptographer_1.decipherData(ciphered_data_2).value());
+    ASSERT_EQ(cryptographer_2.decipherData(ciphered_data_1).value(), cryptographer_2.decipherData(ciphered_data_2).value());
+    ASSERT_EQ(cryptographer_1.decipherData(ciphered_data_1).value(), cryptographer_2.decipherData(ciphered_data_2).value());
+    ASSERT_EQ(cryptographer_1.decipherData(ciphered_data_2).value(), cryptographer_2.decipherData(ciphered_data_1).value());
 }
 
 TEST_F(AESCryptographerTest, differentCryptographersWillGenerateDifferentCipheredData) {
@@ -102,5 +102,25 @@ TEST_F(AESCryptographerTest, differentCryptographersWillGenerateDifferentCiphere
 
 
     // then
-    ASSERT_NE(std::memcmp(ciphered_data_first.data(), ciphered_data_second.data(), data_length), 0);
+    ASSERT_NE(ciphered_data_first, ciphered_data_second);
+}
+
+TEST_F(AESCryptographerTest, doesNotDecipherUncipheredData) {
+    // given
+    auto some_random_data = generateRandomData();
+    AESCryptographer some_cryptographer{};
+
+    // when & then
+    ASSERT_FALSE(some_cryptographer.decipherData(some_random_data).has_value());
+}
+
+TEST_F(AESCryptographerTest, doesNotDecipherDataCipheredByDifferentCryptographer) {
+    // given
+    auto some_random_data = generateRandomData();
+    AESCryptographer some_cryptographer{};
+    AESCryptographer some_other_cryptographer{};
+    auto ciphered_data = some_cryptographer.cipherData(some_random_data);
+
+    // when & then
+    ASSERT_FALSE(some_other_cryptographer.decipherData(some_random_data).has_value());
 }
