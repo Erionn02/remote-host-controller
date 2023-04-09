@@ -8,7 +8,8 @@
 
 class SecureSocket : public ISocket{
 public:
-    SecureSocket(std::unique_ptr<ISocket> socket);
+    explicit SecureSocket(std::unique_ptr<ISocket> socket);
+    explicit SecureSocket(zmq::socket_type type);
 
     void bind(const std::string &address) override;
 

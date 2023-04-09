@@ -35,6 +35,20 @@ TEST_F(AESCryptographerTest, canDecipherCipheredData) {
     ASSERT_EQ(deciphered_data, some_random_data);
 }
 
+TEST_F(AESCryptographerTest, canHandleEmptyData) {
+    // given
+    std::string empty_data {};
+    AESCryptographer cryptographer{};
+
+    // when
+    auto ciphered_data = cryptographer.cipherData(empty_data);
+    auto deciphered_data = cryptographer.decipherData(ciphered_data);
+
+    // then
+    ASSERT_GE(ciphered_data.length(), empty_data.length());
+    ASSERT_EQ(deciphered_data, empty_data);
+}
+
 TEST_F(AESCryptographerTest, canDecipherDataMultipleTimes) {
     // given
     AESCryptographer cryptographer{};

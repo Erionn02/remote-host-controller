@@ -1,4 +1,4 @@
-#include "CommandLineTaskCreator.hpp"
+#include "CommandLineTaskHandler.hpp"
 
 nlohmann::json CommandLineTaskHandler::createTask(const std::string &command) {
     nlohmann::json task{};

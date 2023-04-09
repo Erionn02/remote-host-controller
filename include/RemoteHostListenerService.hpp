@@ -2,13 +2,13 @@
 
 #include "auxiliary/socket/ISocket.hpp"
 #include "auxiliary/Runnable.hpp"
-#include "PeerToPeerConnection.hpp"
+#include "RemoteHostConnectionController.hpp"
 
 #include <vector>
 
-class ClientService : public Runnable {
+class RemoteHostListenerService : public Runnable {
 public:
-    ClientService(std::unique_ptr<ISocket> socket, const std::string &bind_address, std::size_t port);
+    RemoteHostListenerService(std::unique_ptr<ISocket> socket, const std::string &bind_address, std::size_t port);
 
 private:
     void workerLoop() override;
@@ -17,7 +17,7 @@ private:
 
     std::unique_ptr<ISocket> socket;
     std::string address;
-    std::vector<std::unique_ptr<PeerToPeerConnection>> connections{};
+    std::vector<std::unique_ptr<RemoteHostConnectionController>> connections{};
 };
 
 

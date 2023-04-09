@@ -1,4 +1,7 @@
 #include "auxiliary/socket/SecureSocket.hpp"
+#include "auxiliary/socket/ZMQSocket.hpp"
+
+#include <spdlog/spdlog.h>
 
 #include <iostream>
 
@@ -12,6 +15,10 @@ SecureSocket::SecureSocket(std::unique_ptr<ISocket> socket) : socket(std::move(s
                                  " are zmq::socket_type::rep and zmq::socket_type::req.");
     }
 }
+
+SecureSocket::SecureSocket(zmq::socket_type type) : SecureSocket(std::make_unique<ZMQSocket>(type)) {}
+
+
 
 void SecureSocket::bind(const std::string &address) {
     socket->bind(address);
@@ -47,8 +54,9 @@ bool SecureSocket::send(zmq::message_t &message, zmq::send_flags flags) {
             exchanged_keys = false;
             return exchanged_keys;
         }
+        spdlog::info("Sent AES key successfully.");
     }
-
+    spdlog::debug("MESSAGE LENGTH : {}", message.size());
     auto encrypted_data = aes.cipherData(message.data(), message.size());
     zmq::message_t encrypted_message{encrypted_data};
     return socket->send(encrypted_message, flags);
@@ -60,6 +68,7 @@ bool SecureSocket::send(zmq::multipart_t &messages) {
             exchanged_keys = false;
             return exchanged_keys;
         }
+        spdlog::info("Sent AES key successfully.");
     }
     zmq::multipart_t encrypted_messages{};
     for (auto &msg: messages) {
@@ -77,6 +86,7 @@ bool SecureSocket::recv(zmq::message_t &message) {
             exchanged_keys = false;
             return exchanged_keys;
         }
+        spdlog::info("Received AES key.");
     }
 
     auto result = socket->recv(message);
@@ -93,6 +103,7 @@ bool SecureSocket::recv(zmq::multipart_t &messages) {
             exchanged_keys = false;
             return exchanged_keys;
         }
+        spdlog::info("Received AES key.");
     }
 
     auto received = socket->recv(messages);

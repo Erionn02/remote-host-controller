@@ -18,9 +18,9 @@ TEST(SecureSocketTest, communicationWithSingleMessageWorks) {
     socket_client.connect(address);
 
     //when
-    std::jthread t{[&]{
+    std::jthread t{[&] {
         socket_client.send(message);
-        }};
+    }};
 
     zmq::message_t received_message{};
     socket_server.recv(received_message);
@@ -48,7 +48,7 @@ TEST(SecureSocketTest, communicationWithMultiMessageWorks) {
     socket_client.connect(address);
 
     //when
-    std::jthread t{[&]{
+    std::jthread t{[&] {
         socket_client.send(multi_message);
     }};
 
@@ -59,4 +59,39 @@ TEST(SecureSocketTest, communicationWithMultiMessageWorks) {
     ASSERT_EQ(received_messages.size(), 2);
     ASSERT_EQ(received_messages.at(0).to_string(), some_data);
     ASSERT_EQ(received_messages.at(1).to_string(), some_different_data);
+}
+
+TEST(SecureSocketTest, canExchangeMessagesMultipleTimes) {
+    //given
+    SecureSocket socket_client{zmq::socket_type::req};
+    SecureSocket socket_server{zmq::socket_type::rep};
+    std::string some_data{"This is some random data"};
+    std::string address{"tcp://127.0.0.1:2137"};
+    zmq::message_t message{some_data};
+
+    socket_server.bind(address);
+    socket_client.connect(address);
+
+    //when
+    std::jthread t{[&] {
+        socket_client.send(message);
+    }};
+
+    zmq::message_t received_message{};
+    socket_server.recv(received_message);
+    socket_server.send(received_message);
+    socket_client.recv(received_message);
+
+    for (int i = 0; i < 10; ++i) {
+        zmq::message_t m{some_data};
+        socket_client.send(m);
+        zmq::message_t received{};
+        socket_server.recv(received);
+        zmq::message_t ack{"ack"};
+        socket_server.send(ack);
+        socket_client.recv(ack);
+
+        //then
+        ASSERT_EQ(received.to_string(), some_data);
+    }
 }
