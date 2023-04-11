@@ -1,11 +1,13 @@
 #pragma once
-#include <nlohmann/json.hpp>
+
+#include <string>
 
 class CommandLineTaskHandler {
 public:
+    void executeCommand(const std::string& command);
 
+    std::string getCommandOutput();
 
-    nlohmann::json createTask(const std::string& command);
 };
 
 

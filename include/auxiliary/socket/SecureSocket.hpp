@@ -6,10 +6,15 @@
 
 #include <utility>
 
+#define AES_KEY 2137
+#define AES_VEC 420
+
+
 class SecureSocket : public ISocket{
 public:
     explicit SecureSocket(std::unique_ptr<ISocket> socket);
     explicit SecureSocket(zmq::socket_type type);
+    explicit SecureSocket(zmq::socket_type type, const CryptoPP::SecByteBlock& key, const CryptoPP::SecByteBlock& initialization_vector);
 
     void bind(const std::string &address) override;
 
@@ -40,11 +45,11 @@ private:
     zmq::multipart_t encryptAESKey();
     std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> decryptAES(zmq::multipart_t& encrypted_aes_key);
 
-    AESCryptographer aes{};
-    RSACryptographer rsa{};
 
     bool exchanged_keys{false};
     std::unique_ptr<ISocket> socket;
+    AESCryptographer aes{};
+    RSACryptographer rsa{};
 
     static inline std::string ACK{"ACK"};
 };

@@ -26,8 +26,10 @@ struct SecureSocketTest : public Test {
     }
 
     void TearDown() override {
-        socket_server.unbind();
-        socket_client.disconnect();
+        try{
+            socket_server.unbind();
+            socket_client.disconnect();
+        } catch(...){}
     }
 };
 
@@ -122,4 +124,44 @@ TEST_F(SecureSocketTest, doesNotExchangeDataWithEarsDropper) {
     // then
     zmq::message_t m{};
     ASSERT_FALSE(socket_server.recv(m));
+}
+
+TEST_F(SecureSocketTest, pushPullSocketCommunication) {
+    // given
+    AESCryptographer cryptographer{};
+    auto& key = cryptographer.getKey();
+    auto& vec = cryptographer.getInitVector();
+    SecureSocket pull_socket{zmq::socket_type::pull, key, vec};
+    SecureSocket push_socket{zmq::socket_type::push, key, vec};
+    pull_socket.bind(address);
+    push_socket.connect(address);
+
+    // when
+    zmq::message_t send_message{some_data}, recv_message{};
+    push_socket.send(send_message);
+    pull_socket.recv(recv_message);
+
+    //then
+    ASSERT_EQ(recv_message.to_string(), some_data);
+}
+
+
+TEST_F(SecureSocketTest, getsockoptKeyAndInitVectorTest) {
+    // given
+    AESCryptographer cryptographer{};
+    auto& key = cryptographer.getKey();
+    auto& vec = cryptographer.getInitVector();
+    auto new_key_buffer = std::make_unique<char[]>(key.size());
+    auto new_vec_buffer = std::make_unique<char[]>(vec.size());
+
+    // when
+    SecureSocket socket{zmq::socket_type::push, key, vec};
+    auto key_size = key.size();
+    auto vec_size = vec.size();
+    socket.getsockopt(AES_KEY, reinterpret_cast<void*>(new_key_buffer.get()), &key_size);
+    socket.getsockopt(AES_VEC, reinterpret_cast<void*>(new_vec_buffer.get()), &vec_size);
+
+    //then
+    ASSERT_EQ(std::memcmp(new_key_buffer.get(), key.data(), key_size), 0);
+    ASSERT_EQ(std::memcmp(new_vec_buffer.get(), vec.data(), vec_size), 0);
 }
