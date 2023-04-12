@@ -15,6 +15,8 @@ public:
     explicit AESCryptographer(const CryptoPP::SecByteBlock& key, const CryptoPP::SecByteBlock & iv);
 
     void setKeyAndInitVector(CryptoPP::SecByteBlock& new_key, CryptoPP::SecByteBlock& new_init_vector);
+    void setKey(CryptoPP::SecByteBlock& new_key);
+    void setInitVec(CryptoPP::SecByteBlock& new_init_vec);
 
     std::string cipherData(const std::string& data);
     std::string cipherData(const void* data_ptr, std::size_t size);

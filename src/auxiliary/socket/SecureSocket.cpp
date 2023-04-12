@@ -19,8 +19,8 @@ SecureSocket::SecureSocket(std::unique_ptr<ISocket> socket) : socket(std::move(s
 SecureSocket::SecureSocket(zmq::socket_type type) : SecureSocket(std::make_unique<ZMQSocket>(type)) {}
 
 SecureSocket::SecureSocket(zmq::socket_type type, const CryptoPP::SecByteBlock &key,
-                           const CryptoPP::SecByteBlock &initialization_vector) : socket(std::make_unique<ZMQSocket>(type)),
-                                                                            aes(key, initialization_vector) {
+                           const CryptoPP::SecByteBlock &initialization_vector) :
+        socket(std::make_unique<ZMQSocket>(type)), aes(key, initialization_vector) {
     exchanged_keys = true;
 }
 
@@ -41,10 +41,21 @@ void SecureSocket::disconnect() {
     socket->disconnect();
 }
 
+void SecureSocket::setsockopt(int option, void *value, size_t value_size) {
+    if (option == AES_KEY) {
+        CryptoPP::SecByteBlock key{reinterpret_cast<CryptoPP::byte *>(value), value_size};
+        aes.setKey(key);
+    } else if (option == AES_VEC) {
+        CryptoPP::SecByteBlock init_vec{reinterpret_cast<CryptoPP::byte *>(value), value_size};
+        aes.setInitVec(init_vec);
+    }
+}
+
+
 void SecureSocket::setsockopt(int option, int option_value) {
-    if (option == EXCHANGED_KEYS){
+    if (option == EXCHANGED_KEYS) {
         exchanged_keys = option_value != 0;
-    } else{
+    } else {
         socket->setsockopt(option, option_value);
     }
 }

@@ -78,3 +78,11 @@ void AESCryptographer::setKeyAndInitVector(CryptoPP::SecByteBlock &new_key, Cryp
     encryptor.SetKeyWithIV(key, key.size(), initialization_vector);
 }
 
+void AESCryptographer::setKey(CryptoPP::SecByteBlock &new_key) {
+    setKeyAndInitVector(new_key, initialization_vector);
+}
+
+void AESCryptographer::setInitVec(CryptoPP::SecByteBlock &new_init_vec) {
+    setKeyAndInitVector(key, new_init_vec);
+}
+

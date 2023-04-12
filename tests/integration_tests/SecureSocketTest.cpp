@@ -145,20 +145,6 @@ TEST_F(SecureSocketTest, pushPullSocketCommunication) {
     ASSERT_EQ(recv_message.to_string(), some_data);
 }
 
-
-TEST_F(SecureSocketTest, lol) {
-    // given
-
-
-    // when
-    ZMQSocket socket{zmq::socket_type::pull};
-    socket.bind("tcp://0.0.0.0:*");
-
-    char address[50];
-    std::size_t size = sizeof(address);
-    socket.getsockopt(ZMQ_LAST_ENDPOINT, &address, &size);
-    std::cout<<address;
-}
 TEST_F(SecureSocketTest, getsockoptKeyAndInitVectorTest) {
     // given
     AESCryptographer cryptographer{};

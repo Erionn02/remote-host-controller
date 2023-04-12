@@ -34,15 +34,17 @@ public:
     bool recv(zmq::multipart_t &messages) override;
 
     void setsockopt(int option, int option_value) override;
+    void setsockopt(int option, void *value, size_t value_size);
 
     int getsockopt(int option) override;
-
     void getsockopt(int option, void *value, size_t *value_size) override;
 
     std::string getLastEndpoint() override;
-private:
+
     bool sendEncryptedAESKey();
+
     bool receiveAESKey();
+private:
     zmq::multipart_t serializePublicKey() const;
     CryptoPP::RSA::PublicKey deserializePublicKey(zmq::multipart_t& serialized_key) const;
     zmq::multipart_t encryptAESKey();

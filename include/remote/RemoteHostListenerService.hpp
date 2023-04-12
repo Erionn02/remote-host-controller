@@ -2,7 +2,7 @@
 
 #include "auxiliary/socket/ISocket.hpp"
 #include "auxiliary/Runnable.hpp"
-#include "RemoteHostConnectionController.hpp"
+#include "remote/RemoteHostConnectionController.hpp"
 
 #include <vector>
 
@@ -12,12 +12,13 @@ public:
 
 private:
     void workerLoop() override;
-    bool isNewConnectionRequestReceived();
     void removeStoppedConnections();
+    bool isLimitOfConnectionsReached();
 
     std::unique_ptr<ISocket> socket;
     std::string address;
     std::vector<std::unique_ptr<RemoteHostConnectionController>> connections{};
+    std::size_t limit_of_connections{10};
 };
 
 
