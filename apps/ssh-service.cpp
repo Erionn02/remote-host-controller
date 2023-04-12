@@ -1,5 +1,4 @@
 #include "remote/RemoteHostListenerService.hpp"
-#include "client/ClientConnectionController.hpp"
 #include "auxiliary/socket/SecureSocket.hpp"
 #include "auxiliary/socket/ZMQSocket.hpp"
 #include "PeerFactory.hpp"
