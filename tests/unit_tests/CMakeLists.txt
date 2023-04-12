@@ -5,6 +5,7 @@ package_add_test(CryptoUnitTests
         SOURCES
         AESCryptographerTest.cpp
         RSACryptographerTest.cpp
+        ZMQSocketTest.cpp
         DEPENDS auxiliary
         )
 

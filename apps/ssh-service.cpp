@@ -44,7 +44,8 @@ int main(int argc, char *argv[]) {
         zmq::message_t dummy1{"lol"}, remote_address{};
         secure_socket_2->send(dummy1);
         secure_socket_2->recv(remote_address);
-        ClientConnectionController controller{std::move(secure_socket), remote_address.to_string()};
+        ClientConnectionController controller{std::move(secure_socket), remote_address.to_string(),
+                                              std::unique_ptr<ISocket>(), <#initializer#>};
 
         spdlog::info("STARTED CLIENT CONTROLLER");
         controller.start();

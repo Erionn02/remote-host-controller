@@ -11,7 +11,7 @@ if(!(operation)) return false;
 SecureSocket::SecureSocket(std::unique_ptr<ISocket> socket) : socket(std::move(socket)) {
     int socket_type = this->socket->getsockopt(ZMQ_TYPE);
     if (socket_type != ZMQ_REP && socket_type != ZMQ_REQ) {
-        throw std::runtime_error("For SecureSocket the only available types of underlying command_socket"
+        throw std::runtime_error("For SecureSocket the only available types of underlying socket in this constructor"
                                  " are zmq::socket_type::rep and zmq::socket_type::req.");
     }
 }
@@ -42,12 +42,21 @@ void SecureSocket::disconnect() {
 }
 
 void SecureSocket::setsockopt(int option, int option_value) {
-    socket->setsockopt(option, option_value);
+    if (option == EXCHANGED_KEYS){
+        exchanged_keys = option_value != 0;
+    } else{
+        socket->setsockopt(option, option_value);
+    }
 }
 
 int SecureSocket::getsockopt(int option) {
     return socket->getsockopt(option);
 }
+
+std::string SecureSocket::getLastEndpoint() {
+    return socket->getLastEndpoint();
+}
+
 
 void SecureSocket::getsockopt(int option, void *value, size_t *value_size) {
     if (option == AES_KEY) {
@@ -257,4 +266,5 @@ SecureSocket::decryptAES(zmq::multipart_t &encrypted_aes_key) {
 
     return {aes_key, aes_init_vector};
 }
+
 

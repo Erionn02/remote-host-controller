@@ -8,6 +8,7 @@
 
 #define AES_KEY 2137
 #define AES_VEC 420
+#define EXCHANGED_KEYS 2137420
 
 
 class SecureSocket : public ISocket{
@@ -37,6 +38,8 @@ public:
     int getsockopt(int option) override;
 
     void getsockopt(int option, void *value, size_t *value_size) override;
+
+    std::string getLastEndpoint() override;
 private:
     bool sendEncryptedAESKey();
     bool receiveAESKey();

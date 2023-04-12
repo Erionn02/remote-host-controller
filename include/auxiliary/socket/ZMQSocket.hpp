@@ -11,6 +11,8 @@ public:
 
     void connect(const std::string &address) override;
 
+    std::string getLastEndpoint() override;
+
     void disconnect() override;
 
     bool send(zmq::message_t &message, zmq::send_flags flags = zmq::send_flags::none) override;
@@ -27,8 +29,11 @@ public:
 
     void setsockopt(int option, int option_value) override;
 
+    static std::string getAvailableBindAddress(const std::string& ip_address);
+
+    static bool isAddressWithPortAndProtocolValid(const std::string& address_with_port_and_protocol);
 private:
     zmq::context_t context{};
     zmq::socket_t socket{};
-    std::string last_used_address{};
+    std::string last_connected_address{};
 };

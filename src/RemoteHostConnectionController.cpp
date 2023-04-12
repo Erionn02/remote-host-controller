@@ -19,26 +19,25 @@ std::string exec(const char *cmd) {
 }
 
 
-RemoteHostConnectionController::RemoteHostConnectionController(std::unique_ptr<ISocket> command_socket, const std::string &address_without_port)
-        : command_socket(std::move(command_socket)) {
-    this->command_socket->setsockopt(ZMQ_RCVTIMEO, 1000);
-    this->command_socket->bind(fmt::format("tcp://{}:*", address_without_port));
+RemoteHostConnectionController::RemoteHostConnectionController(std::unique_ptr<ISocket> command_socket,
+                                                               const std::string &command_socket_address,
+                                                               std::unique_ptr<ISocket> response_socket,
+                                                               const std::string &peers_address)
+        : command_socket(std::move(command_socket)), response_socket(std::move(response_socket)) {
+    std::chrono::milliseconds timeout{1000};
+    this->command_socket->setsockopt(ZMQ_RCVTIMEO, static_cast<int>(timeout.count()));
+    this->command_socket->bind(fmt::format("tcp://{}:*", command_socket_address));
+    this->response_socket->connect(peers_address);
 }
 
 std::string RemoteHostConnectionController::getBoundAddress() {
-    char address[50];
-    std::size_t size = sizeof(address);
-    command_socket->getsockopt(ZMQ_LAST_ENDPOINT, &address, &size);
-    return address;
+    return command_socket->getLastEndpoint();
 }
 
 void RemoteHostConnectionController::workerLoop() {
     zmq::message_t message{};
     if(command_socket->recv(message)){
-        auto output = exec(message.to_string().data());
-        spdlog::info("COMMAND: {}, output: \n{}",message.to_string(), output);
-        if(output.empty()) output = "elo";
-        zmq::message_t response{output};
-        command_socket->send(response);
+        zmq::message_t response{"Some response"};
+        response_socket->send(response);
     }
 }

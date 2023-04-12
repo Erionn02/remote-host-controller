@@ -6,7 +6,9 @@
 
 class RemoteHostConnectionController : public Runnable {
 public:
-    explicit RemoteHostConnectionController(std::unique_ptr<ISocket> command_socket, const std::string &address_without_port);
+    explicit RemoteHostConnectionController(std::unique_ptr<ISocket> command_socket,
+                                            const std::string &command_socket_address,
+                                            std::unique_ptr<ISocket> response_socket, const std::string &peers_address);
 
     std::string getBoundAddress();
 

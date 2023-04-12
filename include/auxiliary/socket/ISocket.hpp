@@ -4,6 +4,7 @@
 #include <zmq_addon.hpp>
 
 #include <string>
+#include <regex>
 
 class ISocket {
 public:
@@ -28,6 +29,8 @@ public:
     virtual void setsockopt(int option, int option_value) = 0;
 
     virtual int getsockopt(int option) = 0;
+
+    virtual std::string getLastEndpoint() = 0;
 
     virtual void getsockopt(int option, void *value, size_t *value_size) = 0;
 };
