@@ -93,7 +93,7 @@ bool SecureSocket::send(zmq::message_t &message, zmq::send_flags flags) {
             exchanged_keys = false;
             return exchanged_keys;
         }
-        spdlog::info("Sent AES key successfully.");
+        spdlog::debug("Sent AES key successfully.");
     }
     auto encrypted_data = aes.cipherData(message.data(), message.size());
     zmq::message_t encrypted_message{encrypted_data};
@@ -106,7 +106,7 @@ bool SecureSocket::send(zmq::multipart_t &messages) {
             exchanged_keys = false;
             return exchanged_keys;
         }
-        spdlog::info("Sent AES key successfully.");
+        spdlog::debug("Sent AES key successfully.");
     }
     zmq::multipart_t encrypted_messages{};
     for (auto &msg: messages) {
@@ -124,7 +124,7 @@ bool SecureSocket::recv(zmq::message_t &message) {
             exchanged_keys = false;
             return exchanged_keys;
         }
-        spdlog::info("Received AES key.");
+        spdlog::debug("Received AES key.");
     }
 
     auto recv_result = socket->recv(message);
@@ -151,7 +151,7 @@ bool SecureSocket::recv(zmq::multipart_t &messages) {
             exchanged_keys = false;
             return exchanged_keys;
         }
-        spdlog::info("Received AES key.");
+        spdlog::debug("Received AES key.");
     }
     auto recv_result = socket->recv(messages);
     if (recv_result) {
