@@ -18,14 +18,15 @@ public:
         };
     }
 
-    void stop() {
+    virtual void stop() {
         is_running = false;
         if (t.joinable()) {
             t.join();
         }
+        stopHook();
     }
 
-    virtual ~Runnable() = default;
+    virtual ~Runnable() { is_running = false; };
 
     bool isRunning() { return is_running; }
 
@@ -33,6 +34,8 @@ protected:
     virtual void workerLoop() = 0;
 
     virtual void startUpHook() {}
+
+    virtual void stopHook() {}
 
     std::jthread t{};
     std::atomic<bool> is_running{false};

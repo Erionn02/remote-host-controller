@@ -13,8 +13,26 @@ ClientConnectionController::ClientConnectionController(std::unique_ptr<SecureSoc
     this->data_socket->bind(bind_address);
 }
 
+void ClientConnectionController::stopHook() {
+    if(receive_data_thread.joinable()){
+        receive_data_thread.join();
+    }
+}
+
 void ClientConnectionController::startUpHook() {
     command_socket->sendEncryptedAESKey();
+    receive_data_thread = std::jthread{[this]{
+        while(is_running){
+            receiveWorkerLoop();
+        }
+    }};
+}
+
+void ClientConnectionController::receiveWorkerLoop() {
+    zmq::message_t response{};
+    if(data_socket->recv(response)){
+        std::cout<<"RESPONSE: "<<response.to_string()<<'\n';
+    }
 }
 
 void ClientConnectionController::workerLoop() {
@@ -27,10 +45,5 @@ void ClientConnectionController::workerLoop() {
 
     zmq::message_t ack{};
     command_socket->recv(ack);
-
-    zmq::message_t response{};
-    if(data_socket->recv(response)){
-        std::cout<<"RESPONSE: "<<response.to_string()<<'\n';
-    }
 }
 
