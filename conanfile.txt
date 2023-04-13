@@ -4,6 +4,7 @@ cppzmq/4.6.0
 nlohmann_json/3.11.2
 cryptopp/8.7.0
 spdlog/1.10.0
+boost/1.81.0
 
 [generators]
 cmake
