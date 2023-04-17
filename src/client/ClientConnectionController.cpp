@@ -1,5 +1,7 @@
 #include "client/ClientConnectionController.hpp"
 
+#include <spdlog/spdlog.h>
+
 #include <iostream>
 
 
@@ -11,6 +13,8 @@ ClientConnectionController::ClientConnectionController(std::unique_ptr<SecureSoc
     std::chrono::milliseconds timeout{4000};
     this->data_socket->setsockopt(ZMQ_RCVTIMEO, static_cast<int>(timeout.count()));
     this->data_socket->bind(bind_address);
+    spdlog::debug("Client connected to {}", peer_address);
+    spdlog::debug("Client bound to {}", bind_address);
 }
 
 void ClientConnectionController::stopHook() {

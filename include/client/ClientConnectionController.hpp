@@ -2,7 +2,7 @@
 
 #include "auxiliary/Runnable.hpp"
 #include "auxiliary/socket/SecureSocket.hpp"
-#include "CommandLineTaskHandler.hpp"
+#include "ShellHandler.hpp"
 
 class ClientConnectionController : public Runnable{
 public:

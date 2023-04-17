@@ -9,10 +9,8 @@ add_lib(project_lib
         client/ClientConnectionController.cpp
         client/ServiceConnector.cpp
         PeerFactory.cpp
+        ShellHandler.cpp
 
-        TaskScheduler.cpp
-        TaskExecutor.cpp
-        CommandLineTaskHandler.cpp
         DEPENDS
         auxiliary
         )
