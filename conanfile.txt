@@ -5,6 +5,7 @@ nlohmann_json/3.11.2
 cryptopp/8.7.0
 spdlog/1.10.0
 boost/1.81.0
+onetbb/2021.8.0
 
 [generators]
 cmake

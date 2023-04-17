@@ -2,7 +2,7 @@
 
 #include "auxiliary/Runnable.hpp"
 #include "auxiliary/socket/SecureSocket.hpp"
-#include "CommandLineTaskHandler.hpp"
+#include "ShellHandler.hpp"
 
 class ClientConnectionController : public Runnable{
 public:
@@ -11,10 +11,14 @@ public:
 
 private:
     void startUpHook() override;
+    void stopHook() override;
+
     void workerLoop() override;
+    void receiveWorkerLoop();
 
     std::unique_ptr<SecureSocket> command_socket;
     std::unique_ptr<SecureSocket> data_socket;
+    std::jthread receive_data_thread{};
 };
 
 
