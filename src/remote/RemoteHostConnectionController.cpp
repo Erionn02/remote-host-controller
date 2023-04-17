@@ -21,7 +21,7 @@ RemoteHostConnectionController::RemoteHostConnectionController(std::unique_ptr<S
 
 void RemoteHostConnectionController::startUpHook() {
     if (command_socket->receiveAESKey()) {
-        std::size_t size{16};
+        std::size_t size{CryptoPP::AES::DEFAULT_KEYLENGTH};
         auto key_buffer = std::make_unique<unsigned char[]>(size);
         auto init_vec_buffer = std::make_unique<unsigned char[]>(size);
         command_socket->getsockopt(AES_KEY, key_buffer.get(), &size);
@@ -35,9 +35,11 @@ void RemoteHostConnectionController::startUpHook() {
     } else {
         throw std::runtime_error("Receiving AES key failed.");
     }
+    spdlog::debug("Creating shell instance.");
     shell = ShellHandler{OS::POSIX};
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    spdlog::debug("Shell instance was created successfully!");
     response_thread = std::jthread{[this] {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
         while (is_running) {
             commandOutputWorkerLoop();
         }
@@ -45,16 +47,12 @@ void RemoteHostConnectionController::startUpHook() {
 }
 
 void RemoteHostConnectionController::commandOutputWorkerLoop() {
-    //do some processing and then
-    auto stdout_content = shell.readSTDOUT();
-//    auto stderr_content = shell.readSTDERR();
-    zmq::message_t response{stdout_content};
-    response_socket->send(response);
-
-//    if (!stderr_content.empty() || !stderr_content.empty()) {
-//
-//    }
-
+    auto terminals_content = shell.read();
+    if(!terminals_content.empty()){
+        response_socket->send(terminals_content);
+    } else {
+        std::this_thread::yield();
+    }
 }
 
 void RemoteHostConnectionController::stopHook() {

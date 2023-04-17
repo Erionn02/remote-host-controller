@@ -1,7 +1,9 @@
 #include "ShellHandler.hpp"
 
+#include <spdlog/spdlog.h>
+
 #include <sstream>
-#include <iostream>
+#include <stdio.h>
 
 
 ShellHandler::ShellHandler(OS operating_system) {
@@ -16,33 +18,35 @@ ShellHandler::ShellHandler(OS operating_system) {
     } else{
         throw std::runtime_error("UNKNOWN OPERATING SYSTEM");
     }
-    shell = bp::child(shell_command, bp::std_in < in, bp::std_out > out, bp::std_err > err);
+    out_stream.reset(fopen(output_filename.c_str(), "w"));
+    spdlog::debug("bp::child");
+    shell = bp::child(shell_command, bp::std_in < in, bp::std_out > out_stream.get(), bp::std_err > out_stream.get());
     std::this_thread::sleep_for(std::chrono::seconds(1));
+}
+
+void ShellHandler::sendSignal(int) {
+
 }
 
 void ShellHandler::write(const std::string &input) {
     in<<input<<std::endl;
 }
 
-std::string ShellHandler::readSTDOUT() {
-    std::string line{};
-    std::stringstream ss{};
-    while (std::getline(out, line) && !line.empty()) {
-        std::cout<<line<<std::endl;
-        ss << line << "\n";
+zmq::multipart_t ShellHandler::read() {
+    zmq::multipart_t lines{};
+    std::size_t len{0};
+    ssize_t bytes_read{0};
+    CharBuffer line{NULL, free};
+    char *line_ptr = line.get();
+    // In order to see updates in stream, for some reason I cannot read from out_stream member and have to reopen file for read every time. Dirty, but works.
+    RAIIFile output_stream_read{fopen(output_filename.c_str(), "r"), fclose};
+    fseek(output_stream_read.get(), last_read_mark, SEEK_CUR);
+    while ((bytes_read = getline(&line_ptr, &len, output_stream_read.get())) != EOF) {
+        zmq::message_t line_m{line_ptr, static_cast<std::size_t>(bytes_read)};
+        lines.add(std::move(line_m));
+        last_read_mark += bytes_read;
     }
-    return ss.str();
-}
-
-std::string ShellHandler::readSTDERR() {
-    std::string line{};
-    std::stringstream ss{};
-
-    while (std::getline(err, line) && !line.empty()) {
-        std::cout<<line<<std::endl;
-        ss << line << std::endl;
-    }
-    return ss.str();
+    return lines;
 }
 
 ShellHandler::~ShellHandler() {
@@ -50,3 +54,5 @@ ShellHandler::~ShellHandler() {
         shell.terminate();
     }
 }
+
+

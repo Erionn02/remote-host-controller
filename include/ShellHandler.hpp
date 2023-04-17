@@ -4,6 +4,7 @@
 
 #include <boost/process.hpp>
 #include <boost/iostreams/stream.hpp>
+#include <zmq_addon.hpp>
 
 namespace bp = boost::process;
 
@@ -21,15 +22,18 @@ public:
     ~ShellHandler();
     explicit ShellHandler(OS operating_system);
 
+    void sendSignal(int signal);
     void write(const std::string& input);
-    std::string readSTDOUT();
-    std::string readSTDERR();
+    zmq::multipart_t read();
 
 private:
-    bp::ipstream out{};
-    bp::ipstream err{};
+    using RAIIFile = std::unique_ptr<FILE, decltype(&fclose)>;
+    using CharBuffer = std::unique_ptr<char, decltype(&free)>;
     bp::opstream in{};
     bp::child shell;
+    std::string output_filename{"output.txt"};
+    RAIIFile out_stream{NULL, fclose};
+    ssize_t last_read_mark{0};
 };
 
 

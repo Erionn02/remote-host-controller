@@ -33,17 +33,17 @@ void ClientConnectionController::startUpHook() {
 }
 
 void ClientConnectionController::receiveWorkerLoop() {
-    zmq::message_t response{};
-    if(data_socket->recv(response)){
-        std::cout<<"RESPONSE: "<<response.to_string()<<'\n';
+    zmq::multipart_t terminals_lines{};
+    if(data_socket->recv(terminals_lines)){
+        for(auto& line: terminals_lines) {
+            std::cout<<line.to_string();
+        }
     }
 }
 
 void ClientConnectionController::workerLoop() {
     std::string command{};
-    std::cout<<"ENTER COMMAND: \n";
     std::getline(std::cin, command);
-    std::cout<<"COMMAND ENTERED.\n";
     zmq::message_t message{command};
     command_socket->send(message);
 

@@ -28,6 +28,9 @@ int main(int argc, char *argv[]) {
         spdlog::info("CONNECTING TO SERVICE {}", service_address);
         auto remote_address = ServiceConnector::getRemoteHostAddress(my_address, service_address, MY_SSH_DEFAULT_PORT);
         spdlog::info("CONNECTED TO SERVICE, GOT NEW REMOTE ADDRESS {}", remote_address);
+        auto client_controller = PeerFactory::createClientConnectionController(remote_address, my_address);
+        client_controller->start();
+        std::this_thread::sleep_until(std::chrono::time_point<std::chrono::system_clock>::max());
     }
    return 0;
 }
