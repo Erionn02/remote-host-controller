@@ -6,20 +6,13 @@
 using namespace std::chrono_literals;
 
 int main() {
-    std::cout<<"Started program.\n";
+    std::cout<<"Started program.";
     while(true){
-        std::cout<<"Something"<<std::endl;
-        std::cerr<<"error stream"<<std::endl;
-        std::this_thread::sleep_for(0.5s);
-        if(std::rand()%3==0){
-            std::cout<<"Waiting for input...\n";
-            std::string input{};
-            std::getline(std::cin, input);
-            std::cout<<"Got input: \""<<input<<"\"\n";
-            if(input=="end"){
-                break;
-            }
-        }
+        std::cout<<"\nEnter input: ";
+        std::string lol{};
+
+        std::getline(std::cin, lol);
+        std::cout<<'\b';
     }
     return 0;
 }

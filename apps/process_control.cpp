@@ -13,6 +13,7 @@ int main() {
 
     process::pstream in;
     std::unique_ptr<FILE, decltype(&fclose)> out_stream{fopen("output.txt", "w"), fclose};
+//    std::unique_ptr<FILE, decltype(&fclose)> in_stream{fopen("input.txt", "r"), fclose};
     process::child c(
             "bash -i",
             process::std_out > out_stream.get(),

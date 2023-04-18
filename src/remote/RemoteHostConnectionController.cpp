@@ -49,6 +49,9 @@ void RemoteHostConnectionController::startUpHook() {
 void RemoteHostConnectionController::commandOutputWorkerLoop() {
     auto terminals_content = shell.read();
     if(!terminals_content.empty()){
+        for(auto& line: terminals_content) {
+            std::cout<<line.to_string();
+        }
         response_socket->send(terminals_content);
     } else {
         std::this_thread::yield();
