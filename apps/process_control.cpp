@@ -1,49 +1,89 @@
-#include <boost/process.hpp>
-#include <boost/process/pipe.hpp>
 #include <boost/asio/io_service.hpp>
+#include <boost/process.hpp>
+#include <boost/process/async.hpp>
 
-#include <thread>
 #include <iostream>
-#include <stdio.h>
-#include <stdlib.h>
+#include <thread>
+#include <oneapi/tbb/concurrent_queue.h>
+
+namespace asio = boost::asio;
+namespace bp = boost::process;
+using namespace std::placeholders;
+
+enum class StreamType {
+    normal,
+    error
+};
+using SingleOutput = std::pair<StreamType, std::string>;
+using StreamOutputsQueue = tbb::concurrent_queue<SingleOutput>;
+
+struct PipeReader {
+    using error_code = boost::system::error_code;
+    using stringbuf = asio::dynamic_string_buffer<char, std::char_traits<char>, std::allocator<char>>;
+
+    bp::async_pipe pipe;
+    std::string output;
+    stringbuf buf = asio::dynamic_buffer(output);
+    std::shared_ptr<StreamOutputsQueue> queue;
+    StreamType stream_type;
+    std::size_t buffer_size{2048};
+
+    PipeReader(asio::io_service &ios, std::shared_ptr<StreamOutputsQueue>& queue, StreamType stream_type) : pipe(ios),
+                                                                                          queue(queue),
+                                                                                          stream_type(stream_type) {
+        buf.prepare(buffer_size);
+    }
+
+    void read_loop(const error_code &ec = {}, size_t n = {}) {
+
+        if (n > 0) {
+            queue->emplace(stream_type, output.substr(0, n));
+        }
+
+        if (!ec)
+            pipe.async_read_some(buf.data(0, buffer_size), [this](const error_code &ec, std::size_t n) {
+                read_loop(ec, n);
+            });
+    }
+};
 
 int main() {
-    using namespace boost;
+    asio::io_context ios;
+    std::shared_ptr<StreamOutputsQueue> outputs = std::make_shared<StreamOutputsQueue>();
+    PipeReader pipeOut(ios, outputs, StreamType::normal), pipeErr(ios, outputs, StreamType::error);
+    bp::opstream in;
 
+    bp::child c(
+            "test_program",
+            bp::std_out > pipeOut.pipe,
+            bp::std_err > pipeErr.pipe,
+            bp::std_in < in,
+            ios);
 
-    process::pstream in;
-    std::unique_ptr<FILE, decltype(&fclose)> out_stream{fopen("output.txt", "w"), fclose};
-//    std::unique_ptr<FILE, decltype(&fclose)> in_stream{fopen("input.txt", "r"), fclose};
-    process::child c(
-            "bash -i",
-            process::std_out > out_stream.get(),
-            process::std_err > out_stream.get(),
-            process::std_in < in
-    );
+    pipeOut.read_loop();
+    pipeErr.read_loop();
+
+    std::jthread io_thread([&ios] { ios.run(); });
+    std::jthread print_thread([outputs, &c] { while(c.running()){
+        SingleOutput output;
+        if(outputs->try_pop(output)){
+            if(output.first == StreamType::normal){
+                std::cout<<output.second;
+            } else {
+                std::cerr<<output.second;
+            }
+        }
+    } });
 
     std::cout << "STARTING LOOP: \n";
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-    ssize_t total_bytes_read{0};
-    do {
-        std::size_t len{0};
-        ssize_t bytes_read{0};
-        std::unique_ptr<char, decltype(&free)> line{NULL, free};
-        char *line_ptr = line.get();
-        std::unique_ptr<FILE, decltype(&fclose)> please_work{fopen("output.txt", "r"), fclose};
-        fseek(please_work.get(), total_bytes_read, SEEK_CUR);
-        while ((bytes_read = getline(&line_ptr, &len, please_work.get())) != EOF) {
-            printf("%s", line_ptr);
-            total_bytes_read += bytes_read;
-        }
+    for (std::string input_command{};
+         std::getline(std::cin, input_command) && c.running();
+         std::this_thread::yield()) //
+    {
+        in << input_command << std::endl;
+    }
 
-        std::string input_command{};
-        std::getline(std::cin, input_command);
-        if (c.running()) { //to prevent sigpipe if process dies during input
-            in << input_command << std::endl;
-        }
-    } while (c.running());
-
+    std::cout << "\n---\ntotal stdout:" << pipeOut.output.length() << ", stderr:" << pipeErr.output.length()
+              << std::endl;
     return 0;
 }
-
-
