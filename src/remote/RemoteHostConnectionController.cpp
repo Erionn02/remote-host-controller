@@ -49,8 +49,6 @@ void RemoteHostConnectionController::commandOutputWorkerLoop() {
     if(!terminals_content.empty()){
         zmq::multipart_t messages{};
         for(auto& content: terminals_content) {
-            auto json = nlohmann::json::parse(content);
-            std::cout<<json.at(JsonStructure::STREAM_TYPE_KEY).get<std::string>()<<std::endl;
             messages.addstr(content);
         }
         response_socket->send(messages);

@@ -10,7 +10,9 @@
 int main() {
     asio::io_context ios;
     StreamOutputQueue outputs{};
-    StreamReader pipeOut(ios, outputs, StreamType::normal), pipeErr(ios, outputs, StreamType::error);
+    StreamReader pipeOut(ios, outputs, JsonStructure::STDOUT);
+    StreamReader pipeErr(ios, outputs, JsonStructure::STDERR);
+
     bp::opstream in;
 
     bp::child c(
@@ -22,17 +24,19 @@ int main() {
 
 
     std::jthread io_thread([&ios] { ios.run(); });
-    std::jthread print_thread([&outputs, &c] { while(c.running()){
-        StreamOutput output;
-        if(outputs.try_pop(output)){
-            if(output.first == StreamType::normal){
-                std::cout<<output.second;
-            } else {
-                std::cerr<<output.second;
+    std::jthread print_thread([&outputs, &c] {
+        while (c.running()) {
+            StreamOutput output;
+            if (outputs.try_pop(output)) {
+                if (output.stream_type == JsonStructure::STDOUT) {
+                    std::cout << output.content;
+                } else {
+                    std::cerr << output.content;
+                }
             }
+            std::this_thread::yield();
         }
-        std::this_thread::yield();
-    } });
+    });
 
     std::cout << "STARTING LOOP: \n";
     while (c.running()) {
