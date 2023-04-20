@@ -1,5 +1,6 @@
 #pragma once
 #include "StreamReader.hpp"
+#include "Types.hpp"
 
 #include <boost/process.hpp>
 #include <boost/iostreams/stream.hpp>
@@ -9,11 +10,6 @@
 
 namespace bp = boost::process;
 
-enum class OS {
-    POSIX,
-    WINDOWS,
-    MAC
-};
 
 class ShellHandler {
 public:
@@ -25,15 +21,15 @@ public:
 
     void sendSignal(int signal);
     void write(const std::string& input);
-    std::vector<StreamOutput> read();
+    std::vector<std::string> read();
 
 private:
     bp::opstream in{};
     bp::child shell;
     std::unique_ptr<asio::io_context> ios{std::make_unique<asio::io_context>()}; //yeah, I know.. but the move constructor of io_context is banned so..
     StreamOutputQueue stream_outputs{};
-    StreamReader p_stdout{*ios, stream_outputs, StreamType::normal};
-    StreamReader p_stderr{*ios, stream_outputs, StreamType::normal};
+    StreamReader p_stdout{*ios, stream_outputs, JsonStructure::STDOUT};
+    StreamReader p_stderr{*ios, stream_outputs, JsonStructure::STDERR};
     std::jthread read_thread;
 };
 

@@ -1,7 +1,7 @@
 #include "remote/StreamReader.hpp"
 
 
-StreamReader::StreamReader(asio::io_service &ios, StreamOutputQueue &queue, StreamType stream_type)
+StreamReader::StreamReader(asio::io_service &ios, StreamOutputQueue &queue, const std::string& stream_type)
         : pipe(ios),
           queue(queue),
           stream_type(stream_type) {
@@ -16,7 +16,7 @@ bp::async_pipe &StreamReader::getPipe() {
 
 void StreamReader::read_loop(const error_code &ec, size_t read_size) {
     if (read_size > 0) {
-        queue.emplace(stream_type, output.substr(0, read_size));
+        queue.emplace(StreamOutput{stream_type, output.substr(0, read_size)});
     }
 
     if (!ec)

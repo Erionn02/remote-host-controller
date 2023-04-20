@@ -2,6 +2,7 @@
 
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
+#include <nlohmann/json.hpp>
 
 #include <iostream>
 
@@ -47,10 +48,10 @@ void RemoteHostConnectionController::commandOutputWorkerLoop() {
     auto terminals_content = shell.read();
     if(!terminals_content.empty()){
         zmq::multipart_t messages{};
-        for(auto& [_,content]: terminals_content) {
-            std::cout<<content;
-            zmq::message_t content_m{content};
-            messages.add(std::move(content_m));
+        for(auto& content: terminals_content) {
+            auto json = nlohmann::json::parse(content);
+            std::cout<<json.at(JsonStructure::STREAM_TYPE_KEY).get<std::string>()<<std::endl;
+            messages.addstr(content);
         }
         response_socket->send(messages);
     }

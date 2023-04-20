@@ -5,7 +5,9 @@
 
 using namespace std::chrono_literals;
 
+
 int main() {
+
     std::cout<<"Started program.\n";
     while(true){
         std::cout<<"some input lmaoo\n";
