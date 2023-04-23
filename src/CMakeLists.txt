@@ -11,7 +11,6 @@ add_lib(project_lib
         client/ClientConnectionController.cpp
         client/ServiceConnector.cpp
         PeerFactory.cpp
-        ShellHandler.cpp
 
         DEPENDS
         auxiliary
