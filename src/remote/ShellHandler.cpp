@@ -32,8 +32,9 @@ void ShellHandler::sendSignal(int) {
 
 }
 
-void ShellHandler::write(const std::string &input) {
-    in<<input<<std::endl;
+void ShellHandler::writeCharacter(char c) {
+    in<<c;
+    in.flush();
 }
 
 std::vector<std::string> ShellHandler::read() {

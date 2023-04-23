@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
         std::this_thread::sleep_until(std::chrono::time_point<std::chrono::system_clock>::max());
     } else if (argc == 2) {
         std::string service_address = argv[1];
-        std::string my_address{"tcp://127.0.0.1:2137"};
+        std::string my_address{ZMQSocket::getAvailableBindAddress("127.0.0.1")};
         spdlog::info("CONNECTING TO SERVICE {}", service_address);
         auto remote_address = ServiceConnector::getRemoteHostAddress(my_address, service_address, MY_SSH_DEFAULT_PORT);
         spdlog::info("CONNECTED TO SERVICE, GOT NEW REMOTE ADDRESS {}", remote_address);

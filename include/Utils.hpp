@@ -24,3 +24,19 @@ enum class OS {
     WINDOWS,
     MAC
 };
+
+//#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+//#include <conio.h>
+//    void myClear(){
+//        clrscr();
+//    }
+//#else
+//    static void __clearStream(std::ostream& stream){
+//        stream<<"\033[2J"<<"\033[1;1H"<<std::flush;
+//    }
+//
+//    void myClear(){
+//        __clearStream(std::cout);
+//        __clearStream(std::cerr);
+//    }
+//#endif

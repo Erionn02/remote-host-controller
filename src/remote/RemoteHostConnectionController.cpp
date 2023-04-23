@@ -68,10 +68,10 @@ std::string RemoteHostConnectionController::getBoundAddress() {
 }
 
 void RemoteHostConnectionController::workerLoop() {
-    zmq::message_t message{};
-    if (command_socket->recv(message)) {
+    zmq::message_t character{};
+    if (command_socket->recv(character)) {
         zmq::message_t ack{"ACK"};
         command_socket->send(ack);
-        shell.write(message.to_string());
+        shell.writeCharacter(*character.data<char>());
     }
 }

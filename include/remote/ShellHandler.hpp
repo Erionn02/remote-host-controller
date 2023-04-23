@@ -1,6 +1,6 @@
 #pragma once
 #include "StreamReader.hpp"
-#include "Types.hpp"
+#include "Utils.hpp"
 
 #include <boost/process.hpp>
 #include <boost/iostreams/stream.hpp>
@@ -20,7 +20,7 @@ public:
     explicit ShellHandler(OS operating_system);
 
     void sendSignal(int signal);
-    void write(const std::string& input);
+    void writeCharacter(char c);
     std::vector<std::string> read();
 
 private:

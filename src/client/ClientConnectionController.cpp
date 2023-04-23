@@ -1,5 +1,6 @@
 #include "client/ClientConnectionController.hpp"
-#include "Types.hpp"
+#include "Utils.hpp"
+#include "auxiliary/portable/PortableGetChar.hpp"
 
 #include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>
@@ -46,9 +47,8 @@ void ClientConnectionController::receiveWorkerLoop() {
 }
 
 void ClientConnectionController::workerLoop() {
-    std::string command{};
-    std::getline(std::cin, command);
-    zmq::message_t message{command};
+    char c = portable::p_getChar();
+    zmq::message_t message{&c, sizeof(c)};
     command_socket->send(message);
 
     zmq::message_t ack{};

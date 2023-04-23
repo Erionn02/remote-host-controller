@@ -174,13 +174,13 @@ bool SecureSocket::recv(zmq::multipart_t &messages) {
 }
 
 bool SecureSocket::sendEncryptedAESKey() {
-    zmq::multipart_t key_message = serializePublicKey();
-    RETURN_ON_FAILURE(socket->send(key_message))
+    zmq::multipart_t rsa_key_message = serializePublicKey();
+    RETURN_ON_FAILURE(socket->send(rsa_key_message))
 
-    zmq::multipart_t peer_key_message{};
-    RETURN_ON_FAILURE(socket->recv(peer_key_message))
+    zmq::multipart_t peer_rsa_key_message{};
+    RETURN_ON_FAILURE(socket->recv(peer_rsa_key_message))
 
-    auto peer_public_key = deserializePublicKey(peer_key_message);
+    auto peer_public_key = deserializePublicKey(peer_rsa_key_message);
     rsa.setPublicKey(peer_public_key);
     auto encrypted_aes_key = encryptAESKey();
     RETURN_ON_FAILURE(socket->send(encrypted_aes_key))
@@ -193,12 +193,12 @@ bool SecureSocket::sendEncryptedAESKey() {
 
 
 bool SecureSocket::receiveAESKey() {
-    zmq::multipart_t key{};
-    RETURN_ON_FAILURE(socket->recv(key));
+    zmq::multipart_t rsa_key{};
+    RETURN_ON_FAILURE(socket->recv(rsa_key));
 
-    auto peer_public_key = deserializePublicKey(key);
+    auto peer_public_key = deserializePublicKey(rsa_key);
     auto my_public_key = serializePublicKey();
-    rsa.setPublicKey(peer_public_key);
+//    rsa.setPublicKey(peer_public_key);
     RETURN_ON_FAILURE(socket->send(my_public_key));
 
     zmq::multipart_t encrypted_aes_key{};
