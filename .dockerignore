@@ -1,0 +1,4 @@
+.idea/
+cmake-build-*/
+run-container.sh
+UbuntuDockerfile.dockerfile

@@ -11,7 +11,7 @@ struct SecureSocketTest : public Test {
     SecureSocket socket_client{std::make_unique<ZMQSocket>(zmq::socket_type::req)};
     SecureSocket socket_server{std::make_unique<ZMQSocket>(zmq::socket_type::rep)};
     std::string some_data{"This is some random data"};
-    std::string address{"tcp://127.0.0.1:2137"};
+    std::string address{"tcp://127.0.0.1:5326"};
 
     void exchangeKeys() {
         zmq::message_t message{"dummy data"};
@@ -58,7 +58,7 @@ TEST_F(SecureSocketTest, communicationWithMultiMessageWorks) {
     //given
     std::string some_data{"This is some random data"};
     std::string some_different_data{"This is some different random data"};
-    std::string address{"tcp://127.0.0.1:2137"};
+    std::string address{"tcp://127.0.0.1:5326"};
 
     zmq::multipart_t multi_message{};
     zmq::message_t m1{some_data};
