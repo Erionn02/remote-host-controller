@@ -29,6 +29,7 @@ void ClientConnectionController::stopHook() {
 
 void ClientConnectionController::startUpHook() {
     command_socket->sendEncryptedAESKey();
+    spdlog::debug("Exchanged keys.");
     receive_data_thread = std::jthread{[this] {
         while (is_running) {
             receiveWorkerLoop();
@@ -44,6 +45,8 @@ void ClientConnectionController::receiveWorkerLoop() {
             stream(json.at(JsonStructure::STREAM_TYPE_KEY)) << json.at(JsonStructure::CONTENT_KEY).get<std::string>();
         }
     }
+    std::cout.flush();
+    std::cerr.flush();
 }
 
 void ClientConnectionController::workerLoop() {
