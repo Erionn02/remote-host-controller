@@ -1,5 +1,3 @@
-include(CMakePrintHelpers)
-
 add_subdirectory(auxiliary)
 
 add_lib(project_lib

@@ -20,11 +20,11 @@ int main() {
 //        std::cout<<m.to_string()<<'\n';
 //    }
 
+    std::cout<<"kuba@Desktop:~/CLionProjects/remote-host-controller$";
     while(true) {
-        std::cout<<"LOOP\n";
         char c = portable::p_getChar();
-        if(c=='\n')
-         std::cout<<"NEWLINE";
+        std::cout<<c;
+//        std::cout.flush();
     }
 
 //    std::cout<<"Started program.\n";
